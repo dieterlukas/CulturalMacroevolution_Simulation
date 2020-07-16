@@ -1,0 +1,173 @@
+"","society","tribes","ecoregion","region"
+"1","North Tlingit",1,"Pacific Coastal Mountain Icefields and Tundra",24
+"2","Tlingit",2,"Northern Pacific Coastal Forests",22
+"3","Tututni",32,"Klamath-Siskiyou Forests",17
+"4","Chetco Athapaskan",33,"Northern California Coastal Forests",21
+"5","Galice Creek Athapaskan",34,"Klamath-Siskiyou Forests",17
+"6","Tolowa",35,"Klamath-Siskiyou Forests",17
+"7","Hupa",38,"Klamath-Siskiyou Forests",17
+"8","Sinkyone",40,"Northern California Coastal Forests",21
+"9","Nongatl Athapaskan",42,"Klamath-Siskiyou Forests",17
+"10","Mattole",41,"Northern California Coastal Forests",21
+"11","Kato Athapaskan",43,"Klamath-Siskiyou Forests",17
+"12","Alkatcho",93,"Cascade Mountains Leeward Forests",7
+"13","Carrier",94,"Fraser Plateau and Basin Complex",15
+"14","Chilcotin",95,"Cascade Mountains Leeward Forests",7
+"15","North Tonto Western Apache",147,"Arizona Mountains Forests",2
+"16","South Tonto Western Apache",148,"Arizona Mountains Forests",2
+"17","San Carlos Western Apache",149,"Arizona Mountains Forests",2
+"18","Cibecue Western Apache",150,"Colorado Plateau Shrublands",11
+"19","White Mountain Western Apache",151,"Arizona Mountains Forests",2
+"20","Western Navaho",157,"Colorado Plateau Shrublands",11
+"21","Eastern Navaho",158,"Colorado Plateau Shrublands",11
+"22","Chiricahua",152,"Chihuahuan desert",10
+"23","Huachuca Chiricahua Apache",153,"Chihuahuan desert",10
+"24","Mescalero Apache",154,"Arizona Mountains Forests",2
+"25","Lipan",155,"East Central Texas Forests",13
+"26","Jicarilla Apache",156,"Colorado Plateau Shrublands",11
+"27","North Masset Haida",3,"Queen Charlotte Islands",27
+"28","Haida",4,"Queen Charlotte Islands",27
+"29","Tsimshian",5,"North Cascades Forests",19
+"30","Gitksan",6,"North Cascades Forests",19
+"31","Chinook",27,"Central Pacific Coastal Forests",9
+"32","Wishram",110,"Eastern Cascades Forests",14
+"33","Alsea",29,"Central Pacific Coastal Forests",9
+"34","Siuslaw",30,"Central Pacific Coastal Forests",9
+"35","Coos",31,"Central Pacific Coastal Forests",9
+"36","Trinity River Wintu",47,"Klamath-Siskiyou Forests",17
+"37","Wintu",48,"Klamath-Siskiyou Forests",17
+"38","Sacramento River Wintu",49,"Klamath-Siskiyou Forests",17
+"39","Nomlaki",50,"California Interior Chaparral and Woodlands",5
+"40","Patwin",67,"California Central Valley Grasslands",3
+"41","Valley Maidu",54,"California Central Valley Grasslands",3
+"42","Foothill Maidu",55,"Sierra Nevada Forests",28
+"43","Mountain Maidu",56,"Sierra Nevada Forests",28
+"44","Foothill Nisenan",57,"Sierra Nevada Forests",28
+"45","Mountain Nisenan",58,"Sierra Nevada Forests",28
+"46","Nisenan",59,"California Interior Chaparral and Woodlands",5
+"47","Miwok",68,"California Interior Chaparral and Woodlands",5
+"48","Central Miwok",69,"Sierra Nevada Forests",28
+"49","Southern Miwok",70,"Sierra Nevada Forests",28
+"50","Chuckchansi Yokuts",73,"California Interior Chaparral and Woodlands",5
+"51","Kings River Yokuts",74,"California Interior Chaparral and Woodlands",5
+"52","Kaweah Yokuts",75,"California Central Valley Grasslands",3
+"53","Lake Yokuts",76,"California Interior Chaparral and Woodlands",5
+"54","Yauelmani Yokuts",77,"California Central Valley Grasslands",3
+"55","Coast Yuki",60,"Klamath-Siskiyou Forests",17
+"56","Yuki",61,"Klamath-Siskiyou Forests",17
+"57","Wappo",66,"California Interior Chaparral and Woodlands",5
+"58","Nez Perce",107,"Palouse Grasslands",25
+"59","Umatilla",108,"Snake/Columbia Shrub Steppe",29
+"60","Klikitat",109,"Central and Southern Cascades Forests",8
+"61","Tenino",111,"Palouse Grasslands",25
+"62","Klamath",112,"Eastern Cascades Forests",14
+"63","Modoc",113,"Eastern Cascades Forests",14
+"64","Zuni",160,"Colorado Plateau Shrublands",11
+"65","Haisia",7,"North Cascades Forests",19
+"66","Haihais Kwakiutl",8,"North Cascades Forests",19
+"67","Bellabella",9,"North Cascades Forests",19
+"68","Kwakiutl",10,"Central Pacific Coastal Forests",9
+"69","Nootka",12,"Central Pacific Coastal Forests",9
+"70","Makah",13,"Central Pacific Coastal Forests",9
+"71","Bellacoola",11,"North Cascades Forests",19
+"72","Klahuse Salish",14,"North Cascades Forests",19
+"73","Pentlatch Salish",15,"Central Pacific Coastal Forests",9
+"74","Squamish",16,"North Cascades Forests",19
+"75","Cowichan",17,"Central Pacific Coastal Forests",9
+"76","Stalo",19,"Puget Lowland Forests",26
+"77","Lower Fraser Salish",20,"Puget Lowland Forests",26
+"78","West Santech Salish",18,"Central Pacific Coastal Forests",9
+"79","Lummi",21,"Puget Lowland Forests",26
+"80","Klallam",22,"Central Pacific Coastal Forests",9
+"81","Twana",23,"Central Pacific Coastal Forests",9
+"82","Quinault",24,"Central Pacific Coastal Forests",9
+"83","Puyallup",25,"Central and Southern Cascades Forests",8
+"84","Tillamok",28,"Central Pacific Coastal Forests",9
+"85","Shuswap",96,"Alberta Mountain Forests",1
+"86","Lillooet",97,"North Cascades Forests",19
+"87","Thompson",98,"Cascade Mountains Leeward Forests",7
+"88","Southern Okanagon",99,"Palouse Grasslands",25
+"89","Sanpoil",100,"Okanogan Forests",23
+"90","Columbia",101,"Snake/Columbia Shrub Steppe",29
+"91","Wenatchi",102,"Snake/Columbia Shrub Steppe",29
+"92","Coeur d'Alene",103,"North Central Rockies Forests",20
+"93","Kalispel",104,"North Central Rockies Forests",20
+"94","Flathead",105,"South Central Rockies Forests",31
+"95","Quileute",26,"Central Pacific Coastal Forests",9
+"96","Yurok",36,"Northern California Coastal Forests",21
+"97","Wiyot",39,"Northern California Coastal Forests",21
+"98","Kutenai",106,"North Central Rockies Forests",20
+"99","Acoma",161,"Colorado Plateau Shrublands",11
+"100","Sia Keres",162,"Colorado Plateau Shrublands",11
+"101","Santa Ana Keres",163,"Arizona Mountains Forests",2
+"102","Santo Domingo Keres",164,"Arizona Mountains Forests",2
+"103","Cochiti",165,"Colorado Plateau Shrublands",11
+"104","Karok",37,"Klamath-Siskiyou Forests",17
+"105","Shasta",44,"Klamath-Siskiyou Forests",17
+"106","West Shasta",45,"Klamath-Siskiyou Forests",17
+"107","Chimariko",46,"Klamath-Siskiyou Forests",17
+"108","East Achomawi",51,"Eastern Cascades Forests",14
+"109","Achomawi",52,"Eastern Cascades Forests",14
+"110","Atsugewi",53,"Sierra Nevada Forests",28
+"111","Yana",62,"Klamath-Siskiyou Forests",17
+"112","Northern Pomo",63,"Klamath-Siskiyou Forests",17
+"113","Southern Pomo",65,"California Interior Chaparral and Woodlands",5
+"114","Eastern Pomo",64,"California Interior Chaparral and Woodlands",5
+"115","Salinan",80,"California Interior Chaparral and Woodlands",5
+"116","Mountain Diegueno",88,"California Coastal Sage and Chaparral",4
+"117","Western Diegueno",89,"California Coastal Sage and Chaparral",4
+"118","Diegueno",90,"California Coastal Sage and Chaparral",4
+"119","Kamia",142,"Sonoran desert",30
+"120","Cocopa",143,"Sonoran desert",30
+"121","Kiliwa",91,"Sonoran desert",30
+"122","Akwaala",92,"California Coastal Sage and Chaparral",4
+"123","Havasupai",136,"Arizona Mountains Forests",2
+"124","Walapai",137,"Mojave Desert",18
+"125","Northeast Yavapai",138,"Arizona Mountains Forests",2
+"126","Yavapai",139,"Chihuahuan desert",10
+"127","Mohave",140,"Mojave Desert",18
+"128","Yuma",141,"Sonoran desert",30
+"129","Maricopa",144,"Sonoran desert",30
+"130","Washo",119,"Sierra Nevada Forests",28
+"131","San Joaquin Mono",71,"Sierra Nevada Forests",28
+"132","Kings River Mono",72,"California Interior Chaparral and Woodlands",5
+"133","Owens Valley Northern Paiute",117,"Great Basin Shrub Steppe",16
+"134","Wada-Dokado Northern Paiute",114,"Snake/Columbia Shrub Steppe",29
+"135","Kidu-Dokado Northern Paiute",115,"Snake/Columbia Shrub Steppe",29
+"136","Kuyui-Dokado Northern Paiute",116,"Great Basin Shrub Steppe",16
+"137","Kawaiisu",79,"Mojave Desert",18
+"138","Uintah",129,"Colorado Plateau Shrublands",11
+"139","Uncompahgre",130,"Colorado Rockies Forests",12
+"140","Wimonuch Ute",131,"Colorado Plateau Shrublands",11
+"141","Shivwits Southern Paiute",132,"Mojave Desert",18
+"142","Kaibab",133,"Colorado Plateau Shrublands",11
+"143","San Juan Southern Paiute",134,"Colorado Plateau Shrublands",11
+"144","Chemehuevi Southern Paiute",135,"Mojave Desert",18
+"145","Panamint",118,"Mojave Desert",18
+"146","Reese River Shoshoni",120,"Great Basin Shrub Steppe",16
+"147","Spring Valley",121,"Great Basin Shrub Steppe",16
+"148","Ruby Valley Shoshoni",122,"Great Basin Shrub Steppe",16
+"149","Battle Mountain Shoshone",123,"Great Basin Shrub Steppe",16
+"150","Gosiute",124,"Great Basin Shrub Steppe",16
+"151","Bohogue Shoshone",125,"Snake/Columbia Shrub Steppe",29
+"152","Agaiduka Shoshone",126,"South Central Rockies Forests",31
+"153","Hukundika",127,"Great Basin Shrub Steppe",16
+"154","Wind River",128,"Wyoming Basin Shrub Steppe",32
+"155","Tubatulabal",78,"Sierra Nevada Forests",28
+"156","Gabrielo",81,"California Coastal Sage and Chaparral",4
+"157","Luiseno",82,"California Coastal Sage and Chaparral",4
+"158","Cupeno",83,"California Coastal Sage and Chaparral",4
+"159","Cahuilla",85,"Sonoran desert",30
+"160","Pass Cahuilla",86,"California Montane Chaparral and Woodlands",6
+"161","Mountain Cahuilla",87,"California Coastal Sage and Chaparral",4
+"162","Serrano",84,"Mojave Desert",18
+"163","Pima",145,"Sonoran desert",30
+"164","Papago",146,"Sonoran desert",30
+"165","Hopi",159,"Colorado Plateau Shrublands",11
+"166","San Juan Tewa",166,"Colorado Plateau Shrublands",11
+"167","San Ildefonso Tewa",167,"Colorado Plateau Shrublands",11
+"168","Santa Clara Tewa",168,"Colorado Rockies Forests",12
+"169","Nambe Tewa",169,"Colorado Plateau Shrublands",11
+"170","Taos",170,"Colorado Plateau Shrublands",11
+"171","Isleta",171,"Colorado Plateau Shrublands",11
+"172","Jemez",172,"Colorado Plateau Shrublands",11
