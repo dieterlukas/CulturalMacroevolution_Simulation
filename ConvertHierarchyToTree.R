@@ -1,3 +1,5 @@
+# The first part defines functions that will be used for constructing the trees
+
 ## recursion function
 traverse <- function(a,i,innerl){
   if(i < (ncol(df))){
@@ -24,15 +26,15 @@ df2newick <- function(df, innerlabel=FALSE){
 df <- data.frame(x=c('A','A','B','B','B'), y=c('Ab','Ac','Ba', 'Ba','Bd'), z=c('Abb','Acc','Bad', 'Bae','Bdd'))
 myNewick <- df2newick(df)
 
+
+# Load necessary libraries to maninpulate data and the phylogeny
 library(ape)
 library(tidyr)
-mytree <- read.tree(text=myNewick)
-plot(mytree)
+library(dplyr)
 
 
-setwd("~/ownCloud/Documents/CulturalPhylogenetics with BorgerhoffMulder Towner")
-
-americantribes<-read.csv("perreault_northamericalanguagephylogeny_numerical.csv")
+# Read the file with the hierarchical classification of societies across nine levels of language family affiliation
+americantribes<-read.csv("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/WNAI_languageclassification_numerical.csv")
 americantribes<-americantribes[,2:10]
 df<-americantribes
 AmericanNewick <- df2newick(americantribes)
@@ -40,10 +42,9 @@ AmericanNewick <- df2newick(americantribes)
 
 Americantree <- read.tree(text=AmericanNewick)
 plot(Americantree)
-write.nexus(Americantree,file="americantree.nex")
 
-
-americantribes<-read.csv("perreault_northamericalanguagephylogeny.csv")
+# Read the file with the original classification and the original labels for each society
+americantribes<-read.csv("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/WNAI_languageclassification_labels.csv")
 americantribes<-americantribes[,2:10]
 for (i in 1:ncol(americantribes)) {
   americantribes[,i]<-as.numeric(americantribes[,i])
@@ -64,6 +65,7 @@ colnames(reclassify)<-c("labels","L9")
 colnames(Americantreelabels)<-"L9"
 Americantreelabels<-left_join(as.data.frame(Americantreelabels), as.data.frame(reclassify), by = "L9")
 Americantree$tip.label<-as.character(Americantreelabels$labels)
+plot(Americantree)
 write.nexus(Americantree,file="americantree.nex")
 
 
