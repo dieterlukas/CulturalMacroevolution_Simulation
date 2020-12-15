@@ -2703,10 +2703,13 @@ for (tree_variant in 1:length(tree_variants)) {
         counter<-counter+1
         
         
-        
+        print("counter")
         print(counter)
+        print("repetition")
         print(repetition)
+        print("currenttree")
         print(tree_used)
+        print("selection_variant")
         print(selection_variant)
         
         

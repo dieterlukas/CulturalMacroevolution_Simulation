@@ -323,19 +323,19 @@ if(Option=="WNAI") {
 #we split the tree according to the largest clades - CladeA versus the remaining societies
 
 #Create dummy variables designating subclade membership for each society 
-data$cladeA<-rep(0,172)
-data[data$tribes %in% cladeA,]$cladeA<-1
-cladeAmember<-data$cladeA
-names(cladeAmember)<-data$tribes
+WNAIdata$cladeA<-rep(0,172)
+WNAIdata[WNAIdata$tribes %in% cladeA,]$cladeA<-1
+cladeAmember<-WNAIdata$cladeA
+names(cladeAmember)<-WNAIdata$tribes
 
 #Label all the nodes of the respective subclades
 simmapattemptCladeA<-make.simmap(Grafentree,cladeAmember)
 
 #We also want that selection operates differently in one of the ecoregions - all of them that are forests
 # Information on the ecoregion is available for all societies in the sample. 
-data$Forests<-as.numeric(grepl("Forest",data$ecoregion))
-Forestmember<-data$Forests
-names(Forestmember)<-data$tribes
+WNAIdata$Forests<-as.numeric(grepl("Forest",WNAIdata$ecoregion))
+Forestmember<-WNAIdata$Forests
+names(Forestmember)<-WNAIdata$tribes
 Ecologymember<-Forestmember
 
 #Label all the nodes according to whether the ancestral society was likely to be associated with forests
@@ -855,9 +855,9 @@ for (tree_variant in 1:length(tree_variants)) {
           
           numeric_simulatedtipds_neutral<-as.numeric(cladeAsimulatedtips)
           names(numeric_simulatedtipds_neutral)<-names(cladeAsimulatedtips)
-          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+          resultphylosiglambda<-phylosig(cladeAtree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          resultphylosigK<-phylosig(cladeAtree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]
           
         }
@@ -947,9 +947,9 @@ for (tree_variant in 1:length(tree_variants)) {
           
           numeric_simulatedtipds_neutral<-as.numeric(cladeBsimulatedtips)
           names(numeric_simulatedtipds_neutral)<-names(cladeBsimulatedtips)
-          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+          resultphylosiglambda<-phylosig(cladeBtree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          resultphylosigK<-phylosig(cladeBtree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]
           
         }
@@ -1044,9 +1044,9 @@ for (tree_variant in 1:length(tree_variants)) {
           
           numeric_simulatedtipds_neutral<-as.numeric(cladeCsimulatedtips)
           names(numeric_simulatedtipds_neutral)<-names(cladeCsimulatedtips)
-          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+          resultphylosiglambda<-phylosig(cladeCtree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          resultphylosigK<-phylosig(cladeCtree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]
           
         }
@@ -1141,9 +1141,9 @@ for (tree_variant in 1:length(tree_variants)) {
           
           numeric_simulatedtipds_neutral<-as.numeric(cladeDsimulatedtips)
           names(numeric_simulatedtipds_neutral)<-names(cladeDsimulatedtips)
-          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+          resultphylosiglambda<-phylosig(cladeDtree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          resultphylosigK<-phylosig(cladeDtree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]
           
         }
@@ -1234,9 +1234,9 @@ for (tree_variant in 1:length(tree_variants)) {
           
           numeric_simulatedtipds_neutral<-as.numeric(cladeEsimulatedtips)
           names(numeric_simulatedtipds_neutral)<-names(cladeEsimulatedtips)
-          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+          resultphylosiglambda<-phylosig(cladeEtree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          resultphylosigK<-phylosig(cladeEtree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]
           
         }
@@ -1328,9 +1328,9 @@ for (tree_variant in 1:length(tree_variants)) {
           
           numeric_simulatedtipds_neutral<-as.numeric(cladeFsimulatedtips)
           names(numeric_simulatedtipds_neutral)<-names(cladeFsimulatedtips)
-          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+          resultphylosiglambda<-phylosig(cladeFtree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          resultphylosigK<-phylosig(cladeFtree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]          
         }
         
@@ -1431,9 +1431,9 @@ for (tree_variant in 1:length(tree_variants)) {
             
             numeric_simulatedtipds_neutral<-as.numeric(ThreeQuartersimulatedtips)
             names(numeric_simulatedtipds_neutral)<-names(ThreeQuartersimulatedtips)
-            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+            resultphylosiglambda<-phylosig(ThreeQuartertree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+            resultphylosigK<-phylosig(ThreeQuartertree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
           }
@@ -1536,9 +1536,9 @@ for (tree_variant in 1:length(tree_variants)) {
             
             numeric_simulatedtipds_neutral<-as.numeric(Halfsimulatedtips)
             names(numeric_simulatedtipds_neutral)<-names(Halfsimulatedtips)
-            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+            resultphylosiglambda<-phylosig(Halftree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+            resultphylosigK<-phylosig(Halftree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
           }
@@ -1674,9 +1674,9 @@ for (tree_variant in 1:length(tree_variants)) {
             
             numeric_simulatedtipds_neutral<-as.numeric(Rarelostsimulatedtips)
             names(numeric_simulatedtipds_neutral)<-names(Rarelostsimulatedtips)
-            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+            resultphylosiglambda<-phylosig(Rarelosttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+            resultphylosigK<-phylosig(Rarelosttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
           }
@@ -1812,9 +1812,9 @@ for (tree_variant in 1:length(tree_variants)) {
             
             numeric_simulatedtipds_neutral<-as.numeric(Frequentlostsimulatedtips)
             names(numeric_simulatedtipds_neutral)<-names(Frequentlostsimulatedtips)
-            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+            resultphylosiglambda<-phylosig(Frequentlosttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+            resultphylosigK<-phylosig(Frequentlosttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
           }
@@ -1918,9 +1918,9 @@ for (tree_variant in 1:length(tree_variants)) {
             
             numeric_simulatedtipds_neutral<-as.numeric(Ecologylosstips)
             names(numeric_simulatedtipds_neutral)<-names(Ecologylosstips)
-            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+            resultphylosiglambda<-phylosig(Ecologylosttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+            resultphylosigK<-phylosig(Ecologylosttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
           }
@@ -2687,10 +2687,13 @@ for (tree_variant in 1:length(tree_variants)) {
           counter<-counter+1
           
           
-
+        print("runningcounter")
         print(counter)
+        print("repetition")
         print(repetition)
+        print("currenttree")
         print(tree_used)
+        print("drift_variant")
         print(drift_variant)
         
         

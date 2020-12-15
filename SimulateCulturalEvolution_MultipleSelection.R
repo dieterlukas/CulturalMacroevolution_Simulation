@@ -778,9 +778,9 @@ for (tree_variant in 1:length(tree_variants)) {
              
           numeric_simulatedtipds_neutral<-as.numeric(Halfsimulatedtips)
           names(numeric_simulatedtipds_neutral)<-names(Halfsimulatedtips)
-          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+          resultphylosiglambda<-phylosig(Halftree,numeric_simulatedtipds_neutral,method="lambda") 
           selection_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          resultphylosigK<-phylosig(Halftree,numeric_simulatedtipds_neutral,method="K") 
           selection_results[counter,13]<-resultphylosigK[1]
           
           
@@ -911,9 +911,9 @@ for (tree_variant in 1:length(tree_variants)) {
           
           numeric_simulatedtipds_neutral<-as.numeric(Rarelostsimulatedtips)
           names(numeric_simulatedtipds_neutral)<-names(Rarelostsimulatedtips)
-          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+          resultphylosiglambda<-phylosig(Rarelosttree,numeric_simulatedtipds_neutral,method="lambda") 
           selection_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          resultphylosigK<-phylosig(Rarelosttree,numeric_simulatedtipds_neutral,method="K") 
           selection_results[counter,13]<-resultphylosigK[1]
           
           #For the simulations where there are only two variants, we check whether by chance the variants
@@ -1044,9 +1044,9 @@ for (tree_variant in 1:length(tree_variants)) {
           
           numeric_simulatedtipds_neutral<-as.numeric(Frequentlostsimulatedtips)
           names(numeric_simulatedtipds_neutral)<-names(Frequentlostsimulatedtips)
-          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+          resultphylosiglambda<-phylosig(Frequentlosttree,numeric_simulatedtipds_neutral,method="lambda") 
           selection_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          resultphylosigK<-phylosig(Frequentlosttree,numeric_simulatedtipds_neutral,method="K") 
           selection_results[counter,13]<-resultphylosigK[1]
           
           #For the simulations where there are only two variants, we check whether by chance the variants
@@ -1145,9 +1145,9 @@ for (tree_variant in 1:length(tree_variants)) {
          
           numeric_simulatedtipds_neutral<-as.numeric(Ecologylosstips)
           names(numeric_simulatedtipds_neutral)<-names(Ecologylosstips)
-          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
+          resultphylosiglambda<-phylosig(Ecologylosttree,numeric_simulatedtipds_neutral,method="lambda") 
           selection_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          resultphylosigK<-phylosig(Ecologylosttree,numeric_simulatedtipds_neutral,method="K") 
           selection_results[counter,13]<-resultphylosigK[1]
           
           
@@ -1633,10 +1633,13 @@ for (tree_variant in 1:length(tree_variants)) {
         counter<-counter+1
         
         
-        
+        print("runningcounter")
         print(counter)
+        print("repetition")
         print(repetition)
+        print("currenttree")
         print(tree_used)
+        print("selection_variant")
         print(selection_variant)
         
         
