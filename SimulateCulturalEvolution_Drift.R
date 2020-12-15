@@ -1,32 +1,162 @@
+
+
 #------------------------------------------------------------------------------------------
 # Simulations for the manuscript - drift
 #------------------------------------------------------------------------------------------
 
-#Load necessary libraries
+# These simulations and their outcomes are described in:
+# Lukas, D., Towner, M., & Mulder, M. B. (2020). The Potential to Infer the Historical Pattern of Cultural Macroevolution as Illustrated by the Western North American Indian Societies.
+# https://osf.io/preprints/socarxiv/tjvgy/
 
+
+
+#------------------------------------------------------------------------------------------
+# This set of simulations and analyses aims to assess the potential false positive error rate 
+# of phylogenetic reconstructions of the historical evolution of cultural traits
+
+# The code simulates changes in an arbitrary cultural trait across a known phylogeny, assuming that all 
+# changes are equally likely, in all parts of the tree. This reflects a trait that changed according to drift.
+# The resulting distribution of the different states of the trait are analysed with a variety of methods
+# that are frequently used in biological and cultural phylogenetics. A false positive error occurs
+# if such an analysis wrongly infers that one of the variants of the trait has been under selection or
+# that changes in the trait occurred at different rates in different parts of the tree.
+
+# The analyses examine three potential false positive errors:
+# 1) wrongly identifying selection on the trait:
+#         determines whether an analysis wrongly supports the inference that changes to or from one state
+#         have occurred significantly more likely than other changes - even though the simulation is set up
+#         such that changes between all states are equally likely
+# 2) wrongly identifying lineage differences in changes in the trait:
+#         determines whether an analysis wrongly supports the inference that changes between states
+#         occurred more or less frequently in one part of the tree compared to the rest of the tree - even
+#         though the simulation is set up such that changes occur at the same rate throughout the tree
+# 3) wronlgy identifying ecological associations of the distribution of the trait:
+#         determines whether an analysis wrongly supports that changes to or from one state have occurred
+#         significantly more often in lineages that have a particular ecology - even though the simulation
+#         is set up such that changes in the trait are not associated with ecological differences
+
+
+# The setup includes further modifications to assess whether the false positive error rates are influenced by
+# i)   properties of the sample:
+#         assesses how the inferences change if information is available for only a subset of tree (subclade),
+#         or if information is missing from societies throughout the tree
+# ii)  properties of the tree:
+#         assesses how the inferences change if known branch lengths are used, if branch lengths are modified
+#         to assume that changes in the trait are associated with splits between societies but not necessarily 
+#         happen constantly over time, and if phylogeny is imbalanced towards early or late diversification
+# iii) properties of the trait:
+#         assesses how inferences change if the trait is split into more or fewer states, 
+#         if changes occur frequently or infrequently, and if states can be transmitted horizontally
+
+
+# The simulations focus on traits that can be split into two or more discrete categories.
+# This reflects a large number of cultural traits, which are either classified as present/absent or
+# into different separate categories. The simulations currently do not reflect continuous traits.
+
+# A matching set of simulations and analyses to assess the potential false negative rate
+# can be found here: https://github.com/dieterlukas/CulturalMacroevolution_Simulation/blob/master/SimulateCulturalEvolution_Selection.R
+
+# This code can be adapted to assess the potential risk of false positive errors in a user-provided dataset.
+# For this, you need a phylogeny in nexus format, and, if relevant, information on an ecological variable
+# for the societies in the sample. Load these instead of the example files and adjust the steps after line 130.
+
+#------------------------------------------------------------------------------------------
+
+
+
+#Load necessary libraries
+# The code relies on a number of phylogenetic packages to manipulate and analyse the data
 library(ape)
 library(geiger)
 library(phytools)
 library(OUwie)
+
+# The code also uses some packages that facilitate loading and structuring the data
 library(dplyr)
+library(readr)
+
+# Finally, the simulation relies on the software Bayestraits (http://www.evolution.rdg.ac.uk/SoftwareMain.html)
+# It starts the software from within R using the package Bayestraits Wrapper
+# To install the package, follow the instructions by the developer (http://www.randigriffin.com/projects/btw.html)
+# It is also necessary that you have Bayestraits on your computer, and that you set the working directory in R to a location with a copy of Bayestraits
 library(btw)
 
 
+
 #------------------------------------------------------------------------------------------
-# Load relevant WNAI data from GitHub
+# There are two sets of societies here as example:
+# Western North American Indigeneous societies (WNAI) and societies from Australia who speak a language of the Pama Nyungan family
+
+# To run the simulations across a phylogeny of Western North American Indigeneous societies, run this next line
+Option<-"WNAI"
+
+# To run the simulations across a phylogeny of Pama PamaNyungan speaking societies, run this next line
+Option<-"PamaNyungan"
+
+
+#------------------------------------------------------------------------------------------
+# Load relevant phylogenies from GitHub
+
+
+#Load WNAI tree constructed from the language classifications
+if(Option=="WNAI") {
+Americantree<-read.nexus(url("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/WNAI_tree_forsimulation.nex"))
+}
+
+if(Option=="PamaNyungan") {
+#Load Pama Nyungan tree provided by Bouckaert et al. 2018 https://doi.org/10.1038/s41559-018-0489-3
+PamaNyungantree<-read.nexus(url("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/PamaNyungan_tree_forsimulation.nex"))
+}
+
+
+#------------------------------------------------------------------------------------------
+# Load associated data from GitHub
+
+# For both sets of societies, there is information on one ecological variable. 
+
+# For the WNAI, the variable classifies the ecoregion that each society predominantly uses (32 different ecosystems; the data are from a version of the WNAI dataset provided by Dow & Eff http://intersci.ss.uci.edu/wiki/index.php/Materials_for_cross-cultural_research)
+if(Option=="WNAI") {
 WNAIdata<-read_csv(url("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/WNAI_data_forsimulation.csv"))
 WNAIdata<-data.frame(WNAIdata)
-data<-WNAIdata
+
+# In addition, we load the geographic location for each society (latitude/longitude) for the horizontal transmission among neighbors; the data are from the same dataset
+WNAIlocations<-read_csv(url("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/WNAI_locations_forsimulation.csv"))
+WNAIlocations<-data.frame(WNAIlocations)
+
+}
+
+# For the Pama Nyungan, the variable classifies the main mode of subsistence (hunter-gatherer versus food produce; the data are from Derungs et al. 2018 https://github.com/curdon/linguisticDensity_ProcB_derungsEtAl)
+if(Option=="PamaNyungan") {
+PamaNyungandata<-read_csv(url("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/PamaNyungan_data_forsimulation.csv"))
+PamaNyungandata<-data.frame(PamaNyungandata)
+rownames(PamaNyungandata)<-PamaNyungandata$society
+
+# In addition, we load the geographic location for each society (latitude/longitude) for the horizontal transmission among neighbors; the data are from the publication that describes the phylogeny, based on the Bowern, Claire (2016). Chirila: Contemporary and Historical Resources for the Indigenous Languages of Australia. Language Documentation and Conservation. Vol 10. http://www.pamanyungan.net/chirila/
+PamaNyunganlocations<-read_csv(url("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/PamaNyungan_locations_forsimulation.csv"))
+PamaNyunganlocations<-data.frame(PamaNyunganlocations)
+rownames(PamaNyunganlocations)<-PamaNyunganlocations$Language
+}
+
+
+
+
+
+
 
 
 #------------------------------------------------------------------------------------------
 
-#Load tree constructed from the language classifications
-Americantree<-read.nexus(url("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/WNAI_tree_forsimulation.nex"))
-
-
 #------------------------------------------------------------------------------------------
-#Modify the tree for the analyses
+# One part of the simulation is to assess whether the shape of the tree, and in particular the branch lenghts have an influence on the inferences
+# For this, we built four additional variants of each phylogenetic tree:
+# Grafentree: a tree with branch lengths based on Grafen's method (all tips equidistant from root, branch length depends onnumber of nodes between root and tip)
+# Onetree: a tree with all branch lengths set to have the same length of one
+# Earlytree: a tree with early diversification and long branches leading to the tips
+# Latetree: a tree with recent diversification and long branches between clades
+
+
+if(Option=="WNAI") {
+#Modify the tree of the WNAI societies for the analyses
 
 #Add branch lengths to the tree based on Grafen's method (all tips equidistant from root, branch length depends onnumber of nodes between root and tip)
 Grafentree<-compute.brlen(Americantree,method="Grafen")
@@ -56,32 +186,139 @@ Latetree<-compute.brlen(Latetree,method="Grafen",power=1.5)
 Earlytree<-root(Earlytree,node=173)
 Earlytree<-multi2di(Earlytree)
 Earlytree<-compute.brlen(Earlytree,method="Grafen",power=0.25)
+}
+
 
 #------------------------------------------------------------------------------------------
+
+if(Option=="PamaNyungan") {
+#Modify the tree of the PamaNyungan societies for the analyses
+
+#Add branch lengths to the tree based on Grafen's method (all tips equidistant from root, branch length depends onnumber of nodes between root and tip)
+Grafentree<-compute.brlen(PamaNyungantree,method="Grafen")
+
+#Add branch lengths to the tree assuming that all branches have the same length of one
+Onetree<-compute.brlen(PamaNyungantree,1)
+
+#Add branch lengths to the tree with early diversification and long branches to the tips
+Earlytree<-compute.brlen(PamaNyungantree,method="Grafen",power=0.25)
+
+#Add branch lengths to the tree with lots of recent diversification and long branches between clades
+Latetree<-compute.brlen(PamaNyungantree,method="Grafen",power=1.5)
+
+#Some analyses need a rooted, fully bifurcating tree
+Grafentree<-root(Grafentree,node=307)
+Grafentree<-multi2di(Grafentree)
+Grafentree<-compute.brlen(Grafentree,method="Grafen")
+
+Onetree<-root(Onetree,node=307)
+Onetree<-multi2di(Onetree)
+Onetree<-compute.brlen(Onetree,1)
+
+Latetree<-root(Latetree,node=307)
+Latetree<-multi2di(Latetree)
+Latetree<-compute.brlen(Latetree,method="Grafen",power=1.5)
+
+Earlytree<-root(Earlytree,node=307)
+Earlytree<-multi2di(Earlytree)
+Earlytree<-compute.brlen(Earlytree,method="Grafen",power=0.25)
+
+}
+
+
+#------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------
+# Another part of the simulations is to assess whether the size of the phylogeny (number of societies) has an influence on inferences
+# For this, we create subsets from each tree reflecting major clades to get smaller trees with more limited numbers of societies
+
+# An additional part of the simulations is to determine whether changes occurred differently in different parts of the tree
+# Also for this, we want to classify the tree and societies into different clades that reflect major lineages
+
 #Identify the major subclades in the tree
-mrca(Americantree)["92","110"]  #192
-mrca(Americantree)["3","1"] #174
-mrca(Americantree)["172","72"] #240
-mrca(Americantree)["6","160"] #193
-mrca(Americantree)["44","119"] #227
-mrca(Americantree)["162","10"] #211
 
-#Create subsets of trees according to the major language groups
-cladeA <- tips(Americantree, 192) # 102 societies "NorthernAmerind"
-cladeB <- tips(Americantree, 174) # 28 societies "NaDene"
-cladeC <- tips(Americantree, 240) # 42 societies "CentralAmerind"
-cladeD <- tips(Americantree, 193) # 36 societies "Penutian"
-cladeE <- tips(Americantree, 227) # 27 societies "Hokan"
-cladeF <- tips(Americantree, 211) # 39 societies "Almosan"
 
+if(Option=="WNAI") {
+# For the WNAI phylogeny
+
+# We identify the nodes that are at the base of each of the clades
+# For the WNAI, clades are based on higher-order language classifications
+# We pick two societies with the same classification from opposite ends of the lineage to identify the ancestral node
+cladeA_basalnode<-mrca(Americantree)["92","110"]  #basal node 192
+cladeB_basalnode<-mrca(Americantree)["3","1"] #basal node 174
+cladeC_basalnode<-mrca(Americantree)["172","72"] #basal node 240
+cladeD_basalnode<-mrca(Americantree)["6","160"] #basal node 193
+cladeE_basalnode<-mrca(Americantree)["44","119"] #basal node 227
+cladeF_basalnode<-mrca(Americantree)["162","10"] #basal node 211
+
+#Create subsets of trees according to the major language groups based on the previously identified basal nodes
+#We create lists with the names of the societies in each clade (each society that is descended from the basal node)
+cladeA <- tips(Americantree, cladeA_basalnode) # 102 societies "NorthernAmerind"
+cladeB <- tips(Americantree, cladeB_basalnode) # 28 societies "NaDene"
+cladeC <- tips(Americantree, cladeC_basalnode) # 42 societies "CentralAmerind"
+cladeD <- tips(Americantree, cladeD_basalnode) # 36 societies "Penutian"
+cladeE <- tips(Americantree, cladeE_basalnode) # 27 societies "Hokan"
+cladeF <- tips(Americantree, cladeF_basalnode) # 39 societies "Almosan"
+
+#We create smaller trees representing each of these clades
 cladeAtree<-keep.tip(Americantree,cladeA)
 cladeBtree<-keep.tip(Americantree,cladeB)
 cladeCtree<-keep.tip(Americantree,cladeC)
 cladeDtree<-keep.tip(Americantree,cladeD)
 cladeEtree<-keep.tip(Americantree,cladeE)
 cladeFtree<-keep.tip(Americantree,cladeF)
+}
 
 
+if(Option=="PamaNyungan") {
+# For the PamaNyungan phylogeny
+
+# We identify the nodes that are at the base of each of the clades
+# We pick two societies from within the same clade from opposite ends of the lineage to identify the ancestral node
+cladeA_basalnode<-mrca(PamaNyungantree)["WangkumaraMcDWur","Adnyamathanha"]  #309
+cladeB_basalnode<-mrca(PamaNyungantree)["Minkin","Zorc"] #basal node 508
+cladeC_basalnode<-mrca(PamaNyungantree)["Kunjen","Wulguru"] #basal node 424
+cladeD_basalnode<-mrca(PamaNyungantree)["Piangil","Iyora"] #basal node 528
+cladeE_basalnode<-mrca(PamaNyungantree)["KKY","Olkola"] #basal node 425
+cladeF_basalnode<-mrca(PamaNyungantree)["Nyamal","Wajarri"] #basal node 324
+
+
+#Create subsets of trees according to the major language groups based on the previously identified basal nodes
+#We create lists with the names of the societies in each clade (each society that is descended from the basal node)
+cladeA <- tips(PamaNyungantree, cladeA_basalnode) # 113 societies "WesternExpansion"
+cladeB <- tips(PamaNyungantree, cladeB_basalnode) # 21 societies "NorthernCape"
+cladeC <- tips(PamaNyungantree, cladeC_basalnode) # 78 societies "PamaMaric"
+cladeD <- tips(PamaNyungantree, cladeD_basalnode) # 81 societies "SouthernCape"
+cladeE <- tips(PamaNyungantree, cladeE_basalnode) # 48 societies "NorthEast"
+cladeF <- tips(PamaNyungantree, cladeF_basalnode) # 34 societies "Southwest"
+
+#We create smaller trees representing each of these clades
+cladeAtree<-keep.tip(PamaNyungantree,cladeA)
+cladeBtree<-keep.tip(PamaNyungantree,cladeB)
+cladeCtree<-keep.tip(PamaNyungantree,cladeC)
+cladeDtree<-keep.tip(PamaNyungantree,cladeD)
+cladeEtree<-keep.tip(PamaNyungantree,cladeE)
+cladeFtree<-keep.tip(PamaNyungantree,cladeF)
+
+}
+
+
+
+#------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------
+# For the analyses to determine whether changes occurred differently in different parts of the tree, there are two specifications
+# The first one takes the information from above to contrast changes in the largest clade (CladeA) from changes in the remaining part of the tree
+# The second one takes information on an ecological variables to classify societies into two groups: 
+# for the American societies this is whether they primarily use a forest habitat or not
+# for the PamaNyungan societies this is whether they are hunter-gatherers or food-producers
+
+# To determine whether changes occurred differently, we need to match this information from the societies to the tree
+# For the clade-based distinction, this labels all branches within the clade one way an all other branches another way
+# For the ecology-based distinction, branches are labelled based on a phylogenetic reconstruction of the most likely history of the ecological variable
+
+
+if(Option=="WNAI") {
 #For the analyses asking whether selection operated differently in different clades, 
 #we split the tree according to the largest clades - CladeA versus the remaining societies
 
@@ -95,16 +332,69 @@ names(cladeAmember)<-data$tribes
 simmapattemptCladeA<-make.simmap(Grafentree,cladeAmember)
 
 #We also want that selection operates differently in one of the ecoregions - all of them that are forests
+# Information on the ecoregion is available for all societies in the sample. 
 data$Forests<-as.numeric(grepl("Forest",data$ecoregion))
 Forestmember<-data$Forests
 names(Forestmember)<-data$tribes
+Ecologymember<-Forestmember
 
-#Label all the nodes according to whether ancestral society was likely to be associated with forests
-simmapattemptForests<-make.simmap(Grafentree,Forestmember)
+#Label all the nodes according to whether the ancestral society was likely to be associated with forests
+#This uses the stochastic mapping approach for binary characters as implemented in phytools
+simmapattemptEcology<-make.simmap(Grafentree,Ecologymember)
+
+}
+
+if(Option=="PamaNyungan") {
+#For the analyses asking whether selection operated differently in different clades, 
+#we split the tree according to the largest clades - CladeA versus the remaining societies
+
+#Create dummy variables designating subclade membership for each society 
+PamaNyungandata$cladeA<-rep(0,306)
+PamaNyungandata[PamaNyungandata$society %in% cladeA,]$cladeA<-1
+cladeAmember<-PamaNyungandata$cladeA
+names(cladeAmember)<-PamaNyungandata$society
+
+#Label all the nodes of the respective subclades
+simmapattemptCladeA<-make.simmap(Grafentree,cladeAmember)
+
+#We also want that selection operates differently in one of the ecologies - all of them that are hunter gatherers
+PamaNyungandata$huntergatherer<-as.numeric(PamaNyungandata$subsistence=="huntergatherer")
+Huntergatherermember<-PamaNyungandata$huntergatherer
+names(Huntergatherermember)<-PamaNyungandata$society
+Ecologymember<-Huntergatherermember
+
+imputedecology<-phylo.impute(PamaNyungantree,as.matrix(Ecologymember))
+
+Ecologymember<-as.numeric(imputedecology[,1]>0.5)
+names(Ecologymember)<-names(imputedecology[,1])
+
+#We do not have information on the subsistence mode for all societies in the sample. 
+# For those with missing data, we assign an equal probability that they are either hunter-gatherers or food producers
+Huntergatherermembermatrix<-to.matrix(Huntergatherermember,c("0","1"))
+Huntergatherermembermatrix[is.na(Huntergatherermember),]<-c(0.5,0.5)
+
+#Label all the nodes according to whether ancestral society was likely to be hunting/gathering
+#This uses the stochastic mapping approach for binary characters as implemented in phytools
+simmapattemptEcology<-make.simmap(Grafentree,Huntergatherermembermatrix)
+}
+
+
+# This completes the preparation of the tree and data
+#------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
+
 
 
 
 #------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------
+# The following part sets up matrices reflecting the assumed transitions for the simulated traits
+# This simulation assumes that changes in simulated traits occur through drift-like processes
+# This means that transitions between all states of the trait are equally likely
+# It also means that transitions occur the same everywhere across the tree
+# There are six matrices: assuming either two or four states of the trait; and for each number of states having slow, medium, or fast rates of transition
+
 #Create the matrices for the simulations of the data on the phylogenetic tree
 
 #Matrices reflecting drift, where transitions between all variants are equally likely
@@ -132,7 +422,16 @@ drift_four_fast<-matrix(c(-1.4,1.4,1.4,1.4, 1.4,-1.4,1.4,1.4, 1.4,1.4,-1.4,1.4, 
 
 
 #------------------------------------------------------------------------------------------
-#Set up the matrices for the phylogenetic reconstructions
+# The following sets up models reflecting the matrices for the phylogenetic reconstructions
+# In the phylogenetic reconstruction, we want to assess what model of evolution is best supported
+# For this, we need to set up a range of models between which to compare
+# The first set of models assume transitions occurred with a drift like process, such that transitions between all states of the trait are equally likely
+# The next sets of models reflect selection, whereby transitions to or from certain states of the trait are more or less likely to occur
+# One set assumes that changes from one state to another always have to go through an intermediate state; when there are only two states, it assumes that one transition is more likely than the other
+# Another set assumes that one state has been under positive or negative selection, such that transitions to this state occurred much more or less likely 
+# In the models, we do not need to specify the rate of transition (this will be estimated by the reconstruction)
+
+
 
 #In some simulations and especially in some subsets, we will not find all four variants so we need to make this option available
 #The numbers assign which transition rates are supposed to be zero, the same as other transitions, or unique
@@ -167,27 +466,81 @@ reconstruction_selection_one_pathway_fromone <- matrix (c(1), nrow=1)
 #-------------------------------------------------------------------------------------------------------------------------------
 
 
-#The following sets up loops to repeat simulations across all four trees and using the different drift models
 
-#Run the simulation generating tip data under a drift model, testing whether the reconstruction wrongly favours that the data fit a model of selection
 
-tree_variants <- c("Grafentree","Onetree","Earlytree","Latetree")
+# The previous sections were to prepare the data and set up the simulations
+# We now select the correct settings for the specific run of the simulations
+
+# The following selects the dataset, and sets up loops to repeat simulations 
+# across all variants of the trees and using the different drift models
+
+
+if(Option=="WNAI") {data<-WNAIdata}
+if(Option=="PamaNyungan") {data<-PamaNyungandata}
+if(Option=="WNAI") {locationdata<-WNAIlocations}
+if(Option=="PamaNyungan") {locationdata<-PamaNyunganlocations}
+
+if(Option=="WNAI") {tree_variants <- c("Grafentree","Onetree","Earlytree","Latetree")}
+if(Option=="PamaNyungan") {tree_variants <- c("PamaNyungantree","Grafentree","Onetree","Earlytree","Latetree")}
+
 
 drift_variants<-c("drift_two_slow","drift_two_medium","drift_two_fast","drift_four_slow","drift_four_medium","drift_four_fast")
 
 counter<-1
 
+# To make it easier to follow the process of the simulation we suppress warnings
 oldw <- getOption("warn")
 options(warn = -1)
 
 #Change the number of repetitions to modify the number of indepedent simulations with a given drift model on a given tree are being performed and analysed
-repetitions<-50
+#There are many different independent analyses for each simulation, so the process takes a significant amount of time for large numbers of repetitions of simulations
+repetitions<-10
 
 #We prepare a data frame to store all the output
 #Each row will have the results from a single simulation (with a given simulation model on a given tree)
 #The columns contain basic information on the settings and the output from the various reconstruction methods
 drift_results<-matrix(data=NA,nrow=500000,ncol=21)
-colnames(drift_results)<-c("Tree","NumberOfVariantsInModel","RateOfChange","Repetition","Sample","NumberOfVariantsObserved","loglik_drift","loglik_selectiononestate","loglik_pathways","loglik_pathwaystoone","loglik_unconstrained","phylosigLambda","phylosigK","BayestraitsIndependent_CladeA","BayestraitsDependent_CladeA","BayestraitsIndependent_Forest","BayestraitsDependent_Forest","loglik_pathwaysfromone","BayestraitsMultistate_Free","BayestraitsMultistate_Equal","Pathway_impossible")
+colnames(drift_results)<-c("Tree","NumberOfVariantsInModel","RateOfChange","Repetition","Sample","NumberOfVariantsObserved","loglik_drift","loglik_selectiononestate","loglik_pathways","loglik_pathwaystoone","loglik_unconstrained","phylosigLambda","phylosigK","BayestraitsIndependent_CladeA","BayestraitsDependent_CladeA","BayestraitsIndependent_Ecology","BayestraitsDependent_Ecology","loglik_pathwaysfromone","BayestraitsMultistate_Free","BayestraitsMultistate_Equal","Pathway_impossible")
+
+
+
+
+
+
+#-------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------
+
+# The simulation loops over the four (WNAI) or five (PamaNyungan) different phylogenies; for each phylogeny
+# it simulates trait histories using one of the six drift variants; meaning there are 24/30 settings. 
+# The number of repetitions set above apply to each setting (so with 10 repetitions there are 240/300 loops)
+
+# For each sample, setting and repetition, the following steps occur:
+# - first the evolutionary history of a trait is modelled across the phylogeny
+# - next, different samples are generated based on this evolutionary history
+#       the full sample of all societies; 
+#       six samples reflecting clades A-F;  
+#       a sample where data for 25% of randomly drawn societies is missing
+#       a sample where data for 50% of randomly drawn societies is missing
+#       a sample where data is missing for 50% of societies with the least frequent state
+#       a sample where data is missing for 50% of societies with the most frequent state
+#       a sample where data is missing for 50% of societies with the dominant ecology
+#       a sample where data is missing for 50% of societies with the most frequent state
+#       a sample where horizontal transfer among contemporary societies happened, with 10% of societies adopting a random other state
+#       a sample where horizontal transfer among contemporary societies happened, with 10% of societies adopting the state that is most frequent in their clade
+#       a sample where horizontal transfer among contemporary societies happened, with 10% of societies adopting the state of their close geographic neighbor
+
+
+# For each sample (within each setting and repetition), the following analyses are performed:
+# - next, the simulated distribution of states of the trait across societes is used as input data in 
+#   phylogenetic reconstructions with drift model, one of the four selection models, and an unconstrained model
+# - next, the simulated distribution of states of the trait across societies is passed on to Bayestraits;
+#   when there are only two states of the trait, it investigates whether the distribution of the traits is
+#   different between clade A and the remainder of the tree and different between societies with the two types
+#   of ecology; when there are three or more states it determines whether all transitions are equally likely or not.
+
+
+
+
 
 
 #This will start the loop; 
@@ -196,6 +549,7 @@ colnames(drift_results)<-c("Tree","NumberOfVariantsInModel","RateOfChange","Repe
 for (tree_variant in 1:length(tree_variants)) {
   
   tree_used<-tree_variants[tree_variant]
+  if(tree_used=="PamaNyungantree") currenttree<-PamaNyungantree
   if(tree_used=="Grafentree") currenttree<-Grafentree
   if(tree_used=="Onetree") currenttree<-Onetree
   if(tree_used=="Earlytree") currenttree<-Earlytree
@@ -238,8 +592,10 @@ for (tree_variant in 1:length(tree_variants)) {
         
         #Start filling in the data in the respective column
         drift_results[counter,1]<-tree_used
-        ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-        ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+        drift_results[counter,2]<-4
+        if(drift_variant<4) drift_results[counter,2]<-2
+        drift_results[counter,3]<-drift_variant-3
+        if(drift_variant<4) drift_results[counter,3]<-drift_variant
         drift_results[counter,4]<-repetition
         
         
@@ -247,7 +603,7 @@ for (tree_variant in 1:length(tree_variants)) {
         #Start the phylogenetic reconstruction with the simulated data
         
         
-        #Start with the full sample of 172 societies
+        #Start with the full sample of societies
         
         drift_results[counter,5]<-"full"
         drift_results[counter,6]<-length(unique(simulatedtips_neutral))
@@ -314,14 +670,16 @@ for (tree_variant in 1:length(tree_variants)) {
         
         drift_results[counter,11]<-unconstrained_reconstruction$loglik
         
-        resultphylosiglambda<-phylosig(currenttree,as.numeric(simulatedtips_neutral),method="lambda") 
+        numeric_simulatedtipds_neutral<-as.numeric(simulatedtips_neutral)
+        names(numeric_simulatedtipds_neutral)<-names(simulatedtips_neutral)
+        resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
         drift_results[counter,12]<-resultphylosiglambda$lambda
-        resultphylosigK<-phylosig(currenttree,as.numeric(simulatedtips_neutral),method="K") 
+        resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
         drift_results[counter,13]<-resultphylosigK[1]
         
         
         #For the simulations where there are only two variants, we check whether by chance the variants
-        #end up isolated in Clade A or associated with societies living in forest ecoregions
+        #end up isolated in Clade A or associated with societies having different ecologies
         #For this we use Bayestraits Discrete, assessing the likelihood of independent versus dependent evolution
         if(length(table(simulatedtips_neutral))==2) {
           
@@ -347,15 +705,16 @@ for (tree_variant in 1:length(tree_variants)) {
           
           
           bayestraitsdiscretedata<-matrix(NA,nrow=length(simulatedtips_neutral),ncol=3)
-          colnames(bayestraitsdiscretedata)<-c("Species","Simulated","Forestmember")
+          colnames(bayestraitsdiscretedata)<-c("Species","Simulated","Ecologymember")
           rownames(bayestraitsdiscretedata)<-c(1:length(simulatedtips_neutral))
           bayestraitsdiscretedata[,1]<-names(simulatedtips_neutral)
           bayestraitsdiscretedata[,2]<-as.numeric(as.character(simulatedtips_neutral))
           bayestraitsdiscretedata[,2]<-as.numeric(bayestraitsdiscretedata[,2])-as.numeric(min(bayestraitsdiscretedata[,2]))
           bayestraitsdiscretedata[bayestraitsdiscretedata[,2]!=0,2]<-1
-          bayestraitsdiscretedata[,3]<- as.numeric(as.character(Forestmember))
+          bayestraitsdiscretedata[,3]<- as.numeric(as.character(Ecologymember))
+          bayestraitsdiscretedata[,3]<-as.numeric(as.character(bayestraitsdiscretedata[,3]))
           bayestraitsdiscretedata<-as.data.frame(bayestraitsdiscretedata)
-          
+          bayestraitsdiscretedata[is.na(bayestraitsdiscretedata[,3]),3]<-"-"
           command_vec3 <- c("2", "1") #option 1 = 2 discrete independent; option 2 = 1 maximum likelihood
           results_3 <- bayestraits(bayestraitsdiscretedata, currenttree, command_vec3)
           log_3 <- results_3$Log
@@ -418,8 +777,11 @@ for (tree_variant in 1:length(tree_variants)) {
         cladeAsimulatedtips<-droplevels(cladeAsimulatedtips)
         
         drift_results[counter,1]<-tree_used
-        ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-        ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+        drift_results[counter,2]<-4
+        if(drift_variant<4) drift_results[counter,2]<-2
+        drift_results[counter,3]<-drift_variant-3
+        if(drift_variant<4) drift_results[counter,3]<-drift_variant
+        
         drift_results[counter,4]<-repetition
         
         drift_results[counter,5]<-"cladeA"
@@ -491,9 +853,11 @@ for (tree_variant in 1:length(tree_variants)) {
           
           drift_results[counter,11]<-unconstrained_reconstruction$loglik
           
-          resultphylosiglambda<-phylosig(cladeAtree,as.numeric(cladeAsimulatedtips),method="lambda") 
+          numeric_simulatedtipds_neutral<-as.numeric(cladeAsimulatedtips)
+          names(numeric_simulatedtipds_neutral)<-names(cladeAsimulatedtips)
+          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(cladeAtree,as.numeric(cladeAsimulatedtips),method="K") 
+          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]
           
         }
@@ -513,8 +877,10 @@ for (tree_variant in 1:length(tree_variants)) {
         cladeBsimulatedtips<-droplevels(cladeBsimulatedtips)
         
         drift_results[counter,1]<-tree_used
-        ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-        ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+        drift_results[counter,2]<-4
+        if(drift_variant<4) drift_results[counter,2]<-2
+        drift_results[counter,3]<-drift_variant-3
+        if(drift_variant<4) drift_results[counter,3]<-drift_variant
         drift_results[counter,4]<-repetition
         
         drift_results[counter,5]<-"cladeB"
@@ -579,9 +945,11 @@ for (tree_variant in 1:length(tree_variants)) {
           
           drift_results[counter,11]<-unconstrained_reconstruction$loglik
           
-          resultphylosiglambda<-phylosig(cladeBtree,as.numeric(cladeBsimulatedtips),method="lambda") 
+          numeric_simulatedtipds_neutral<-as.numeric(cladeBsimulatedtips)
+          names(numeric_simulatedtipds_neutral)<-names(cladeBsimulatedtips)
+          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(cladeBtree,as.numeric(cladeBsimulatedtips),method="K") 
+          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]
           
         }
@@ -601,8 +969,10 @@ for (tree_variant in 1:length(tree_variants)) {
         cladeCsimulatedtips<-droplevels(cladeCsimulatedtips)
         
         drift_results[counter,1]<-tree_used
-        ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-        ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+        drift_results[counter,2]<-4
+        if(drift_variant<4) drift_results[counter,2]<-2
+        drift_results[counter,3]<-drift_variant-3
+        if(drift_variant<4) drift_results[counter,3]<-drift_variant
         drift_results[counter,4]<-repetition
         
         drift_results[counter,5]<-"cladeC"
@@ -672,9 +1042,11 @@ for (tree_variant in 1:length(tree_variants)) {
           
           drift_results[counter,11]<-unconstrained_reconstruction$loglik
           
-          resultphylosiglambda<-phylosig(cladeCtree,as.numeric(cladeCsimulatedtips),method="lambda") 
+          numeric_simulatedtipds_neutral<-as.numeric(cladeCsimulatedtips)
+          names(numeric_simulatedtipds_neutral)<-names(cladeCsimulatedtips)
+          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(cladeCtree,as.numeric(cladeCsimulatedtips),method="K") 
+          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]
           
         }
@@ -694,8 +1066,10 @@ for (tree_variant in 1:length(tree_variants)) {
         cladeDsimulatedtips<-droplevels(cladeDsimulatedtips)
         
         drift_results[counter,1]<-tree_used
-        ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-        ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+        drift_results[counter,2]<-4
+        if(drift_variant<4) drift_results[counter,2]<-2
+        drift_results[counter,3]<-drift_variant-3
+        if(drift_variant<4) drift_results[counter,3]<-drift_variant
         drift_results[counter,4]<-repetition
         
         drift_results[counter,5]<-"cladeD"
@@ -765,9 +1139,11 @@ for (tree_variant in 1:length(tree_variants)) {
           
           drift_results[counter,11]<-unconstrained_reconstruction$loglik
           
-          resultphylosiglambda<-phylosig(cladeDtree,as.numeric(cladeDsimulatedtips),method="lambda") 
+          numeric_simulatedtipds_neutral<-as.numeric(cladeDsimulatedtips)
+          names(numeric_simulatedtipds_neutral)<-names(cladeDsimulatedtips)
+          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(cladeDtree,as.numeric(cladeDsimulatedtips),method="K") 
+          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]
           
         }
@@ -787,8 +1163,10 @@ for (tree_variant in 1:length(tree_variants)) {
         cladeEsimulatedtips<-droplevels(cladeEsimulatedtips)
         
         drift_results[counter,1]<-tree_used
-        ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-        ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+        drift_results[counter,2]<-4
+        if(drift_variant<4) drift_results[counter,2]<-2
+        drift_results[counter,3]<-drift_variant-3
+        if(drift_variant<4) drift_results[counter,3]<-drift_variant
         drift_results[counter,4]<-repetition
         
         drift_results[counter,5]<-"cladeE"
@@ -854,9 +1232,11 @@ for (tree_variant in 1:length(tree_variants)) {
           
           drift_results[counter,11]<-unconstrained_reconstruction$loglik
           
-          resultphylosiglambda<-phylosig(cladeEtree,as.numeric(cladeEsimulatedtips),method="lambda") 
+          numeric_simulatedtipds_neutral<-as.numeric(cladeEsimulatedtips)
+          names(numeric_simulatedtipds_neutral)<-names(cladeEsimulatedtips)
+          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(cladeEtree,as.numeric(cladeEsimulatedtips),method="K") 
+          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
           drift_results[counter,13]<-resultphylosigK[1]
           
         }
@@ -876,8 +1256,10 @@ for (tree_variant in 1:length(tree_variants)) {
         cladeFsimulatedtips<-droplevels(cladeFsimulatedtips)
         
         drift_results[counter,1]<-tree_used
-        ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-        ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+        drift_results[counter,2]<-4
+        if(drift_variant<4) drift_results[counter,2]<-2
+        drift_results[counter,3]<-drift_variant-3
+        if(drift_variant<4) drift_results[counter,3]<-drift_variant
         drift_results[counter,4]<-repetition
         
         drift_results[counter,5]<-"cladeF"
@@ -944,11 +1326,12 @@ for (tree_variant in 1:length(tree_variants)) {
           
           drift_results[counter,11]<-unconstrained_reconstruction$loglik
           
-          resultphylosiglambda<-phylosig(cladeFtree,as.numeric(cladeFsimulatedtips),method="lambda") 
+          numeric_simulatedtipds_neutral<-as.numeric(cladeFsimulatedtips)
+          names(numeric_simulatedtipds_neutral)<-names(cladeFsimulatedtips)
+          resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
           drift_results[counter,12]<-resultphylosiglambda$lambda
-          resultphylosigK<-phylosig(cladeFtree,as.numeric(cladeFsimulatedtips),method="K") 
-          drift_results[counter,13]<-resultphylosigK[1]
-          
+          resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
+          drift_results[counter,13]<-resultphylosigK[1]          
         }
         
         counter<-counter+1
@@ -961,7 +1344,7 @@ for (tree_variant in 1:length(tree_variants)) {
         
         # Subset the tree and the data to assume that 25% of data is randomly missing
         
-        for (randomsample in 1:1) {
+        
           
           ThreeQuarterClade <- currenttree$tip.label
           ThreeQuarterClade <- sample(ThreeQuarterClade)
@@ -974,8 +1357,10 @@ for (tree_variant in 1:length(tree_variants)) {
           ThreeQuartersimulatedtips<-droplevels(ThreeQuartersimulatedtips)
           
           drift_results[counter,1]<-tree_used
-          ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-          ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+          drift_results[counter,2]<-4
+          if(drift_variant<4) drift_results[counter,2]<-2
+          drift_results[counter,3]<-drift_variant-3
+          if(drift_variant<4) drift_results[counter,3]<-drift_variant
           drift_results[counter,4]<-repetition
           
           drift_results[counter,5]<-"ThreeQuarterSample"
@@ -1012,7 +1397,9 @@ for (tree_variant in 1:length(tree_variants)) {
             
             drift_results[counter,9]<-selection_to_a_reconstruction_pathway_slow$opt$lnL
             
-            if(length(unique(ThreeQuartersimulatedtips))>1) ifelse(names(table(ThreeQuartersimulatedtips))[2]!=2, drift_results[counter,21]<-"TRUE",drift_results[counter,21]<-"FALSE")
+             
+            drift_results[counter,21]<-"FALSE"  
+            if(names(table(ThreeQuartersimulatedtips))[2]!=2) drift_results[counter,21]<-"TRUE"
             
             
             # the phylogenetic reconstruction with an alternative pathway selection model
@@ -1042,16 +1429,18 @@ for (tree_variant in 1:length(tree_variants)) {
             
             drift_results[counter,11]<-unconstrained_reconstruction$loglik
             
-            resultphylosiglambda<-phylosig(ThreeQuartertree,as.numeric(ThreeQuartersimulatedtips),method="lambda") 
+            numeric_simulatedtipds_neutral<-as.numeric(ThreeQuartersimulatedtips)
+            names(numeric_simulatedtipds_neutral)<-names(ThreeQuartersimulatedtips)
+            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(ThreeQuartertree,as.numeric(ThreeQuartersimulatedtips),method="K") 
+            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
           }
           
           counter<-counter+1
           
-        } # end of the 10 random subsamples of 75% of societies
+        
         
         
         
@@ -1061,11 +1450,11 @@ for (tree_variant in 1:length(tree_variants)) {
         
         # Subset the tree and the data to assume that 50% of data is randomly missing
         
-        for (randomsample in 1:1) {
+        
           
           HalfClade <- currenttree$tip.label
           HalfClade <- sample(HalfClade)
-          HalfClade <- HalfClade[1:86]
+          HalfClade <- HalfClade[1:round(nrow(data)/2,0)]
           
           Halftree<-keep.tip(currenttree,HalfClade)
           
@@ -1074,8 +1463,10 @@ for (tree_variant in 1:length(tree_variants)) {
           Halfsimulatedtips<-droplevels(Halfsimulatedtips)
           
           drift_results[counter,1]<-tree_used
-          ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-          ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+          drift_results[counter,2]<-4
+          if(drift_variant<4) drift_results[counter,2]<-2
+          drift_results[counter,3]<-drift_variant-3
+          if(drift_variant<4) drift_results[counter,3]<-drift_variant          
           drift_results[counter,4]<-repetition
           
           drift_results[counter,5]<-"HalfSample"
@@ -1143,16 +1534,18 @@ for (tree_variant in 1:length(tree_variants)) {
             
             drift_results[counter,11]<-unconstrained_reconstruction$loglik
             
-            resultphylosiglambda<-phylosig(Halftree,as.numeric(Halfsimulatedtips),method="lambda") 
+            numeric_simulatedtipds_neutral<-as.numeric(Halfsimulatedtips)
+            names(numeric_simulatedtipds_neutral)<-names(Halfsimulatedtips)
+            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(Halftree,as.numeric(Halfsimulatedtips),method="K") 
+            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
           }
           
           counter<-counter+1
           
-        } # end of the 10 random subsamples of 50% of societies
+        
         
         
         
@@ -1161,7 +1554,6 @@ for (tree_variant in 1:length(tree_variants)) {
         
         # State dependent loss of samples - 50% from population of least frequent variant
         
-        for (randomsample in 1:1) {
           
           randomdeletion<-function(x) (x*rbinom(1,1,0.5))
           
@@ -1210,8 +1602,10 @@ for (tree_variant in 1:length(tree_variants)) {
           Rarelostsimulatedtips<-droplevels(Rarelostsimulatedtips)
           
           drift_results[counter,1]<-tree_used
-          ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-          ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+          drift_results[counter,2]<-4
+          if(drift_variant<4) drift_results[counter,2]<-2
+          drift_results[counter,3]<-drift_variant-3
+          if(drift_variant<4) drift_results[counter,3]<-drift_variant
           drift_results[counter,4]<-repetition
           
           drift_results[counter,5]<-"Rarelost"
@@ -1278,16 +1672,18 @@ for (tree_variant in 1:length(tree_variants)) {
             drift_results[counter,11]<-unconstrained_reconstruction$loglik
             
             
-            resultphylosiglambda<-phylosig(Rarelosttree,as.numeric(Rarelostsimulatedtips),method="lambda") 
+            numeric_simulatedtipds_neutral<-as.numeric(Rarelostsimulatedtips)
+            names(numeric_simulatedtipds_neutral)<-names(Rarelostsimulatedtips)
+            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(Rarelosttree,as.numeric(Rarelostsimulatedtips),method="K") 
+            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
           }
           
           counter<-counter+1
           
-        } # end of the 10 random loss of 50% of societies with the rare variant
+        
         
         
         
@@ -1296,7 +1692,6 @@ for (tree_variant in 1:length(tree_variants)) {
         
         # State dependent loss of samples - 50% from population of most frequent variant
         
-        for (randomsample in 1:1) {
           
           randomdeletion<-function(x) (x*rbinom(1,1,0.5))
           
@@ -1345,8 +1740,10 @@ for (tree_variant in 1:length(tree_variants)) {
           Frequentlostsimulatedtips<-droplevels(Frequentlostsimulatedtips)
           
           drift_results[counter,1]<-tree_used
-          ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-          ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+          drift_results[counter,2]<-4
+          if(drift_variant<4) drift_results[counter,2]<-2
+          drift_results[counter,3]<-drift_variant-3
+          if(drift_variant<4) drift_results[counter,3]<-drift_variant
           drift_results[counter,4]<-repetition
           
           drift_results[counter,5]<-"Frequentlost"
@@ -1413,48 +1810,56 @@ for (tree_variant in 1:length(tree_variants)) {
             drift_results[counter,11]<-unconstrained_reconstruction$loglik
             
             
-            resultphylosiglambda<-phylosig(Frequentlosttree,as.numeric(Frequentlostsimulatedtips),method="lambda") 
+            numeric_simulatedtipds_neutral<-as.numeric(Frequentlostsimulatedtips)
+            names(numeric_simulatedtipds_neutral)<-names(Frequentlostsimulatedtips)
+            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(Frequentlosttree,as.numeric(Frequentlostsimulatedtips),method="K") 
+            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
           }
           
           counter<-counter+1
           
-        } # end of the 10 random loss of 50% of societies with the frequent variant
         
         
         
         
         
-        # Loss according to ecoregion (50% of those living in forests)
+        
+        # Loss according to ecoregion (50% of those living in forests or hunting/gathering)
         
         
         # Subset the tree and the data to assume that 50% of data is randomly missing
         
         
-        for (randomsample in 1:1) {
+        
           
           randomdeletion<-function(x) (x*rbinom(1,1,0.5))
-          Foresttips<-sapply(as.numeric(Forestmember),randomdeletion)
-          Forestlosstips<-simulatedtips_neutral[Foresttips==0]
-          Forestlosttree<-keep.tip(currenttree,names(Forestlosstips))
+          Ecologytips<-sapply(as.numeric(Ecologymember),randomdeletion)
           
-          Forestlosstips<-droplevels(Forestlosstips)
+          
+          if(Option=="WNAI") Ecologylosstips<-simulatedtips_neutral[Ecologytips==0]
+          if(Option=="PamaNyungan") Ecologylosstips<-simulatedtips_neutral[Ecologytips==1]
+          
+          Ecologylosttree<-keep.tip(currenttree,names(Ecologylosstips))
+          
+          Ecologylosstips<-droplevels(Ecologylosstips)
           
           drift_results[counter,1]<-tree_used
-          ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-          ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+          drift_results[counter,2]<-4
+          if(drift_variant<4) drift_results[counter,2]<-2
+          drift_results[counter,3]<-drift_variant-3
+          if(drift_variant<4) drift_results[counter,3]<-drift_variant
           drift_results[counter,4]<-repetition
           
-          drift_results[counter,5]<-"Forestloss"
-          drift_results[counter,6]<-length(unique(Forestlosstips))
+          drift_results[counter,5]<-"Ecologyloss"
+          drift_results[counter,6]<-length(unique(Ecologylosstips))
           
-          if (length(table(Forestlosstips))!=1) { 
+          if (length(table(Ecologylosstips))!=1) { 
             
             # the phylogenetic reconstruction with the drift model, the model under which the data were simulated
-            equal_reconstruction <- ace(Forestlosstips, Forestlosttree, type="discrete", model="ER")
+            equal_reconstruction <- ace(Ecologylosstips, Ecologylosttree, type="discrete", model="ER")
             
             drift_results[counter,7]<-equal_reconstruction$loglik
             
@@ -1462,65 +1867,67 @@ for (tree_variant in 1:length(tree_variants)) {
             
             # the phylogenetic reconstruction with a slow one-state selection model
             transitionmatrix<-reconstruction_selection_four
-            if(length(table(Forestlosstips))==3) transitionmatrix<-reconstruction_selection_three
-            if(length(table(Forestlosstips))==2) transitionmatrix<-reconstruction_selection_two
-            if(length(table(Forestlosstips))==1) transitionmatrix<-reconstruction_selection_one
+            if(length(table(Ecologylosstips))==3) transitionmatrix<-reconstruction_selection_three
+            if(length(table(Ecologylosstips))==2) transitionmatrix<-reconstruction_selection_two
+            if(length(table(Ecologylosstips))==1) transitionmatrix<-reconstruction_selection_one
             
-            selection_to_a_reconstruction_twofold <- ace(Forestlosstips, Forestlosttree, type="discrete", model=transitionmatrix)
+            selection_to_a_reconstruction_twofold <- ace(Ecologylosstips, Ecologylosttree, type="discrete", model=transitionmatrix)
             
             drift_results[counter,8]<-selection_to_a_reconstruction_twofold$loglik
             
             
             # the phylogenetic reconstruction with a pathway slow selection model
             transitionmatrix<-reconstruction_selection_four_pathway
-            if(length(table(Forestlosstips))==3) transitionmatrix<-reconstruction_selection_three_pathway
-            if(length(table(Forestlosstips))==2) transitionmatrix<-reconstruction_selection_two_pathway
-            if(length(table(Forestlosstips))==1) transitionmatrix<-reconstruction_selection_one_pathway
+            if(length(table(Ecologylosstips))==3) transitionmatrix<-reconstruction_selection_three_pathway
+            if(length(table(Ecologylosstips))==2) transitionmatrix<-reconstruction_selection_two_pathway
+            if(length(table(Ecologylosstips))==1) transitionmatrix<-reconstruction_selection_one_pathway
             
-            selection_to_a_reconstruction_pathway_slow <- fitDiscrete(dat=Forestlosstips, phy=Forestlosttree, model="meristic")
+            selection_to_a_reconstruction_pathway_slow <- fitDiscrete(dat=Ecologylosstips, phy=Ecologylosttree, model="meristic")
             
             drift_results[counter,9]<-selection_to_a_reconstruction_pathway_slow$opt$lnL
             
-            if(length(unique(Forestlosstips))>1) ifelse(names(table(Forestlosstips))[2]!=2, drift_results[counter,21]<-"TRUE",drift_results[counter,21]<-"FALSE") 
+            if(length(unique(Ecologylosstips))>1) ifelse(names(table(Ecologylosstips))[2]!=2, drift_results[counter,21]<-"TRUE",drift_results[counter,21]<-"FALSE") 
             
             
             # the phylogenetic reconstruction with an alternative pathway selection model
             transitionmatrix<-reconstruction_selection_four_pathway_toone
-            if(length(table(Forestlosstips))==3) transitionmatrix<-reconstruction_selection_three_pathway_toone
-            if(length(table(Forestlosstips))==2) transitionmatrix<-reconstruction_selection_two_pathway_toone
-            if(length(table(Forestlosstips))==1) transitionmatrix<-reconstruction_selection_one_pathway_toone
+            if(length(table(Ecologylosstips))==3) transitionmatrix<-reconstruction_selection_three_pathway_toone
+            if(length(table(Ecologylosstips))==2) transitionmatrix<-reconstruction_selection_two_pathway_toone
+            if(length(table(Ecologylosstips))==1) transitionmatrix<-reconstruction_selection_one_pathway_toone
             
-            selection_to_a_reconstruction_pathway_toone <- ace(Forestlosstips, Forestlosttree, type="discrete", model=transitionmatrix)
+            selection_to_a_reconstruction_pathway_toone <- ace(Ecologylosstips, Ecologylosttree, type="discrete", model=transitionmatrix)
             
             drift_results[counter,10]<-selection_to_a_reconstruction_pathway_toone$loglik
             
             # the phylogenetic reconstruction with an alternative pathway selection model
             transitionmatrix<-reconstruction_selection_four_pathway_fromone
-            if(length(table(Forestlosstips))==3) transitionmatrix<-reconstruction_selection_three_pathway_fromone
-            if(length(table(Forestlosstips))==2) transitionmatrix<-reconstruction_selection_two_pathway_fromone
-            if(length(table(Forestlosstips))==1) transitionmatrix<-reconstruction_selection_one_pathway_fromone
+            if(length(table(Ecologylosstips))==3) transitionmatrix<-reconstruction_selection_three_pathway_fromone
+            if(length(table(Ecologylosstips))==2) transitionmatrix<-reconstruction_selection_two_pathway_fromone
+            if(length(table(Ecologylosstips))==1) transitionmatrix<-reconstruction_selection_one_pathway_fromone
             
-            selection_to_a_reconstruction_pathway_fromone <- ace(Forestlosstips, Forestlosttree, type="discrete", model=transitionmatrix)
+            selection_to_a_reconstruction_pathway_fromone <- ace(Ecologylosstips, Ecologylosttree, type="discrete", model=transitionmatrix)
             
             drift_results[counter,18]<-selection_to_a_reconstruction_pathway_fromone$loglik
             
             
             
             # the phylogenetic reconstruction with an unconstrained model
-            unconstrained_reconstruction <- ace(Forestlosstips, Forestlosttree, type="discrete", model="ARD")
+            unconstrained_reconstruction <- ace(Ecologylosstips, Ecologylosttree, type="discrete", model="ARD")
             
             drift_results[counter,11]<-unconstrained_reconstruction$loglik
             
-            resultphylosiglambda<-phylosig(Forestlosttree,as.numeric(Forestlosstips),method="lambda") 
+            numeric_simulatedtipds_neutral<-as.numeric(Ecologylosstips)
+            names(numeric_simulatedtipds_neutral)<-names(Ecologylosstips)
+            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(Forestlosttree,as.numeric(Forestlosstips),method="K") 
+            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
           }
           
           counter<-counter+1
           
-        } # end of the 10 random subsamples of 50% of societies lost from forests
+        
         
         
 
@@ -1532,10 +1939,9 @@ for (tree_variant in 1:length(tree_variants)) {
         
         # Horizontal transfer, 10% of societies change, randomly adopt another state
         
-        for (randomsample in 1:1) {
           
           
-          societiestochange<-sample(simulatedtips_neutral,17)
+          societiestochange<-sample(simulatedtips_neutral,round(0.1*nrow(data),0))
           societiestochange[societiestochange==1]<-NA
           societiestochange[societiestochange==2]<-1
           societiestochange[is.na(societiestochange)==T]<-2
@@ -1547,12 +1953,15 @@ for (tree_variant in 1:length(tree_variants)) {
           
           #Start filling in the data in the respective column
           drift_results[counter,1]<-tree_used
-          ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-          ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+          drift_results[counter,2]<-4
+          if(drift_variant<4) drift_results[counter,2]<-2
+          drift_results[counter,3]<-drift_variant-3
+          if(drift_variant<4) drift_results[counter,3]<-drift_variant
+          
           drift_results[counter,4]<-repetition
           
           
-          #Start with the full sample of 172 societies
+          #Start with the full sample of  societies
           
           drift_results[counter,5]<-"horizontal10"
           drift_results[counter,6]<-length(unique(horizontal10tips))
@@ -1619,14 +2028,16 @@ for (tree_variant in 1:length(tree_variants)) {
             
             drift_results[counter,11]<-unconstrained_reconstruction$loglik
             
-            resultphylosiglambda<-phylosig(currenttree,as.numeric(horizontal10tips),method="lambda") 
+            numeric_simulatedtipds_neutral<-as.numeric(horizontal10tips)
+            names(numeric_simulatedtipds_neutral)<-names(horizontal10tips)
+            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(currenttree,as.numeric(horizontal10tips),method="K") 
+            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
             
             #For the simulations where there are only two variants, we check whether by chance the variants
-            #end up isolated in Clade A or associated with societies living in forest ecoregions
+            #end up isolated in Clade A or associated with societies living in different ecologies
             #For this we use Bayestraits Discrete, assessing the likelihood of independent versus dependent evolution
             if(length(table(horizontal10tips))==2) {
               
@@ -1652,14 +2063,16 @@ for (tree_variant in 1:length(tree_variants)) {
               
               
               bayestraitsdiscretedata<-matrix(NA,nrow=length(horizontal10tips),ncol=3)
-              colnames(bayestraitsdiscretedata)<-c("Species","Simulated","Forestmember")
+              colnames(bayestraitsdiscretedata)<-c("Species","Simulated","Ecologymember")
               rownames(bayestraitsdiscretedata)<-c(1:length(horizontal10tips))
               bayestraitsdiscretedata[,1]<-names(horizontal10tips)
               bayestraitsdiscretedata[,2]<-as.numeric(as.character(horizontal10tips))
               bayestraitsdiscretedata[,2]<-as.numeric(bayestraitsdiscretedata[,2])-as.numeric(min(bayestraitsdiscretedata[,2]))
               bayestraitsdiscretedata[bayestraitsdiscretedata[,2]!=0,2]<-1
-              bayestraitsdiscretedata[,3]<- as.numeric(as.character(Forestmember))
+              bayestraitsdiscretedata[,3]<- as.numeric(as.character(Ecologymember))
+              bayestraitsdiscretedata[,3]<-as.numeric(as.character(bayestraitsdiscretedata[,3]))
               bayestraitsdiscretedata<-as.data.frame(bayestraitsdiscretedata)
+              bayestraitsdiscretedata[is.na(bayestraitsdiscretedata[,3]),3]<-"-"
               
               command_vec3 <- c("2", "1") #option 1 = 2 discrete independent; option 2 = 1 maximum likelihood
               results_3 <- bayestraits(bayestraitsdiscretedata, currenttree, command_vec3)
@@ -1705,8 +2118,7 @@ for (tree_variant in 1:length(tree_variants)) {
           
           counter<-counter+1
           
-        } # end of the 10 random subsamples with 10% horizontal transmission
-        
+
         
         
         
@@ -1714,11 +2126,11 @@ for (tree_variant in 1:length(tree_variants)) {
         
         # Horizontal transfer, 10% of societies change, adopt state most frequent within their own clade
         
-        for (randomsample in 1:1) {
+        
           
           if (length(table(cladeAsimulatedtips))!=1) {
             
-            cladeAtochange<-sample(cladeAsimulatedtips[cladeAsimulatedtips==names(table(cladeAsimulatedtips)[2])],min(17,table(cladeAsimulatedtips)[2]))
+            cladeAtochange<-sample(cladeAsimulatedtips[cladeAsimulatedtips==names(table(cladeAsimulatedtips)[2])],min(round(0.1*nrow(data),0),table(cladeAsimulatedtips)[2]))
             levels(cladeAtochange)<-c("1","2","3","4")
             cladeAtochange[]<-1
             horizontalClade10tips<-simulatedtips_neutral
@@ -1728,12 +2140,14 @@ for (tree_variant in 1:length(tree_variants)) {
             
             #Start filling in the data in the respective column
             drift_results[counter,1]<-tree_used
-            ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-            ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+            drift_results[counter,2]<-4
+            if(drift_variant<4) drift_results[counter,2]<-2
+            drift_results[counter,3]<-drift_variant-3
+            if(drift_variant<4) drift_results[counter,3]<-drift_variant
             drift_results[counter,4]<-repetition
             
             
-            #Start with the full sample of 172 societies
+            #Start with the full sample of societies
             
             drift_results[counter,5]<-"horizontalClade10"
             drift_results[counter,6]<-length(unique(horizontalClade10tips))
@@ -1802,14 +2216,16 @@ for (tree_variant in 1:length(tree_variants)) {
               
               drift_results[counter,11]<-unconstrained_reconstruction$loglik
               
-              resultphylosiglambda<-phylosig(currenttree,as.numeric(horizontalClade10tips),method="lambda") 
+              numeric_simulatedtipds_neutral<-as.numeric(horizontalClade10tips)
+              names(numeric_simulatedtipds_neutral)<-names(horizontalClade10tips)
+              resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
               drift_results[counter,12]<-resultphylosiglambda$lambda
-              resultphylosigK<-phylosig(currenttree,as.numeric(horizontalClade10tips),method="K") 
+              resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
               drift_results[counter,13]<-resultphylosigK[1]
               
               
               #For the simulations where there are only two variants, we check whether by chance the variants
-              #end up isolated in Clade A or associated with societies living in forest ecoregions
+              #end up isolated in Clade A or associated with societies living in ecologies
               #For this we use Bayestraits Discrete, assessing the likelihood of independent versus dependent evolution
               if(length(table(horizontalClade10tips))==2) {
                 
@@ -1835,14 +2251,16 @@ for (tree_variant in 1:length(tree_variants)) {
                 
                 
                 bayestraitsdiscretedata<-matrix(NA,nrow=length(horizontalClade10tips),ncol=3)
-                colnames(bayestraitsdiscretedata)<-c("Species","Simulated","Forestmember")
+                colnames(bayestraitsdiscretedata)<-c("Species","Simulated","Ecologymember")
                 rownames(bayestraitsdiscretedata)<-c(1:length(horizontalClade10tips))
                 bayestraitsdiscretedata[,1]<-names(horizontalClade10tips)
                 bayestraitsdiscretedata[,2]<-as.numeric(as.character(horizontalClade10tips))
                 bayestraitsdiscretedata[,2]<-as.numeric(bayestraitsdiscretedata[,2])-as.numeric(min(bayestraitsdiscretedata[,2]))
                 bayestraitsdiscretedata[bayestraitsdiscretedata[,2]!=0,2]<-1
-                bayestraitsdiscretedata[,3]<- as.numeric(as.character(Forestmember))
+                bayestraitsdiscretedata[,3]<- as.numeric(as.character(Ecologymember))
+                bayestraitsdiscretedata[,3]<-as.numeric(as.character(bayestraitsdiscretedata[,3]))
                 bayestraitsdiscretedata<-as.data.frame(bayestraitsdiscretedata)
+                bayestraitsdiscretedata[is.na(bayestraitsdiscretedata[,3]),3]<-"-"
                 
                 command_vec3 <- c("2", "1") #option 1 = 2 discrete independent; option 2 = 1 maximum likelihood
                 results_3 <- bayestraits(bayestraitsdiscretedata, currenttree, command_vec3)
@@ -1889,41 +2307,42 @@ for (tree_variant in 1:length(tree_variants)) {
           
           counter<-counter+1
           
-        } # end of the 10 random subsamples with 10% horizontal transmission within clade A
-        
+
         
         
         # Horizontal transfer, 10% of societies change, adopt state most frequent within their own ecoregion
         
-        for (randomsample in 1:1) {
+        
           
-          Forestsimulatedtips<-simulatedtips_neutral[names(simulatedtips_neutral) %in% names(Forestmember[Forestmember==1])]
+          Ecologysimulatedtips<-simulatedtips_neutral[names(simulatedtips_neutral) %in% names(Ecologymember[Ecologymember==1])]
           
-          Foresttochange<-sample(Forestsimulatedtips[Forestsimulatedtips==names(table(Forestsimulatedtips)[2])],min(17,table(Forestsimulatedtips)[2]))
-          levels(Foresttochange)<-c("1","2","3","4")
-          Foresttochange[]<-1
-          horizontalForest10tips<-simulatedtips_neutral
-          horizontalForest10tips[names(horizontalForest10tips) %in% names(Foresttochange)]<-Foresttochange
+          Ecologytochange<-sample(Ecologysimulatedtips[Ecologysimulatedtips==names(table(Ecologysimulatedtips)[2])],min(17,table(Ecologysimulatedtips)[2]))
+          levels(Ecologytochange)<-c("1","2","3","4")
+          Ecologytochange[]<-1
+          horizontalEcology10tips<-simulatedtips_neutral
+          horizontalEcology10tips[names(horizontalEcology10tips) %in% names(Ecologytochange)]<-Ecologytochange
           
-          horizontalForest10tips<-droplevels(horizontalForest10tips)
+          horizontalEcology10tips<-droplevels(horizontalEcology10tips)
           
           #Start filling in the data in the respective column
           drift_results[counter,1]<-tree_used
-          ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-          ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+          drift_results[counter,2]<-4
+          if(drift_variant<4) drift_results[counter,2]<-2
+          drift_results[counter,3]<-drift_variant-3
+          if(drift_variant<4) drift_results[counter,3]<-drift_variant
           drift_results[counter,4]<-repetition
           
           
-          #Start with the full sample of 172 societies
+          #Start with the full sample 
           
-          drift_results[counter,5]<-"horizontalForest10"
-          drift_results[counter,6]<-length(unique(horizontalForest10tips))
+          drift_results[counter,5]<-"horizontalEcology10"
+          drift_results[counter,6]<-length(unique(horizontalEcology10tips))
           
-          if (length(table(horizontalForest10tips))!=1) { 
+          if (length(table(horizontalEcology10tips))!=1) { 
             
             
             # the phylogenetic reconstruction with the drift model, the model under which the data were simulated
-            equal_reconstruction <- ace(horizontalForest10tips, currenttree, type="discrete", model="ER")
+            equal_reconstruction <- ace(horizontalEcology10tips, currenttree, type="discrete", model="ER")
             
             drift_results[counter,7]<-equal_reconstruction$loglik
             
@@ -1931,11 +2350,11 @@ for (tree_variant in 1:length(tree_variants)) {
             
             # the phylogenetic reconstruction with a one-state selection model
             transitionmatrix<-reconstruction_selection_four
-            if(length(table(horizontalForest10tips))==3) transitionmatrix<-reconstruction_selection_three
-            if(length(table(horizontalForest10tips))==2) transitionmatrix<-reconstruction_selection_two
-            if(length(table(horizontalForest10tips))==1) transitionmatrix<-reconstruction_selection_one
+            if(length(table(horizontalEcology10tips))==3) transitionmatrix<-reconstruction_selection_three
+            if(length(table(horizontalEcology10tips))==2) transitionmatrix<-reconstruction_selection_two
+            if(length(table(horizontalEcology10tips))==1) transitionmatrix<-reconstruction_selection_one
             
-            selection_to_a_reconstruction_twofold <- ace(horizontalForest10tips, currenttree, type="discrete", model=transitionmatrix)
+            selection_to_a_reconstruction_twofold <- ace(horizontalEcology10tips, currenttree, type="discrete", model=transitionmatrix)
             
             drift_results[counter,8]<-selection_to_a_reconstruction_twofold$loglik
             
@@ -1943,60 +2362,62 @@ for (tree_variant in 1:length(tree_variants)) {
             
             # the phylogenetic reconstruction with a pathway selection model
             transitionmatrix<-reconstruction_selection_four_pathway
-            if(length(table(horizontalForest10tips))==3) transitionmatrix<-reconstruction_selection_three_pathway
-            if(length(table(horizontalForest10tips))==2) transitionmatrix<-reconstruction_selection_two_pathway
-            if(length(table(horizontalForest10tips))==1) transitionmatrix<-reconstruction_selection_one_pathway
+            if(length(table(horizontalEcology10tips))==3) transitionmatrix<-reconstruction_selection_three_pathway
+            if(length(table(horizontalEcology10tips))==2) transitionmatrix<-reconstruction_selection_two_pathway
+            if(length(table(horizontalEcology10tips))==1) transitionmatrix<-reconstruction_selection_one_pathway
             
-            selection_to_a_reconstruction_pathway_slow <- fitDiscrete(dat=horizontalForest10tips, phy=currenttree, model="meristic")
+            selection_to_a_reconstruction_pathway_slow <- fitDiscrete(dat=horizontalEcology10tips, phy=currenttree, model="meristic")
             
             drift_results[counter,9]<-selection_to_a_reconstruction_pathway_slow$opt$lnL
             
-            if(length(unique(horizontalForest10tips))>1) ifelse(names(table(horizontalForest10tips))[2]!=2, drift_results[counter,21]<-"TRUE",drift_results[counter,21]<-"FALSE") 
+            if(length(unique(horizontalEcology10tips))>1) ifelse(names(table(horizontalEcology10tips))[2]!=2, drift_results[counter,21]<-"TRUE",drift_results[counter,21]<-"FALSE") 
             
             
             # the phylogenetic reconstruction with an alternative pathway selection model
             transitionmatrix<-reconstruction_selection_four_pathway_toone
-            if(length(table(horizontalForest10tips))==3) transitionmatrix<-reconstruction_selection_three_pathway_toone
-            if(length(table(horizontalForest10tips))==2) transitionmatrix<-reconstruction_selection_two_pathway_toone
-            if(length(table(horizontalForest10tips))==1) transitionmatrix<-reconstruction_selection_one_pathway_toone
+            if(length(table(horizontalEcology10tips))==3) transitionmatrix<-reconstruction_selection_three_pathway_toone
+            if(length(table(horizontalEcology10tips))==2) transitionmatrix<-reconstruction_selection_two_pathway_toone
+            if(length(table(horizontalEcology10tips))==1) transitionmatrix<-reconstruction_selection_one_pathway_toone
             
-            selection_to_a_reconstruction_pathway_toone <- ace(horizontalForest10tips, currenttree, type="discrete", model=transitionmatrix)
+            selection_to_a_reconstruction_pathway_toone <- ace(horizontalEcology10tips, currenttree, type="discrete", model=transitionmatrix)
             
             drift_results[counter,10]<-selection_to_a_reconstruction_pathway_toone$loglik
             
             # the phylogenetic reconstruction with an alternative pathway selection model
             transitionmatrix<-reconstruction_selection_four_pathway_fromone
-            if(length(table(horizontalForest10tips))==3) transitionmatrix<-reconstruction_selection_three_pathway_fromone
-            if(length(table(horizontalForest10tips))==2) transitionmatrix<-reconstruction_selection_two_pathway_fromone
-            if(length(table(horizontalForest10tips))==1) transitionmatrix<-reconstruction_selection_one_pathway_fromone
+            if(length(table(horizontalEcology10tips))==3) transitionmatrix<-reconstruction_selection_three_pathway_fromone
+            if(length(table(horizontalEcology10tips))==2) transitionmatrix<-reconstruction_selection_two_pathway_fromone
+            if(length(table(horizontalEcology10tips))==1) transitionmatrix<-reconstruction_selection_one_pathway_fromone
             
-            selection_to_a_reconstruction_pathway_fromone <- ace(horizontalForest10tips, currenttree, type="discrete", model=transitionmatrix)
+            selection_to_a_reconstruction_pathway_fromone <- ace(horizontalEcology10tips, currenttree, type="discrete", model=transitionmatrix)
             
             drift_results[counter,18]<-selection_to_a_reconstruction_pathway_fromone$loglik
             
             
             
             # the phylogenetic reconstruction with an unconstrained model
-            unconstrained_reconstruction <- ace(horizontalForest10tips, currenttree, type="discrete", model="ARD")
+            unconstrained_reconstruction <- ace(horizontalEcology10tips, currenttree, type="discrete", model="ARD")
             
             drift_results[counter,11]<-unconstrained_reconstruction$loglik
             
-            resultphylosiglambda<-phylosig(currenttree,as.numeric(horizontalForest10tips),method="lambda") 
+            numeric_simulatedtipds_neutral<-as.numeric(horizontalEcology10tips)
+            names(numeric_simulatedtipds_neutral)<-names(horizontalEcology10tips)
+            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(currenttree,as.numeric(horizontalForest10tips),method="K") 
+            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
             
             #For the simulations where there are only two variants, we check whether by chance the variants
             #end up isolated in Clade A or associated with societies living in forest ecoregions
             #For this we use Bayestraits Discrete, assessing the likelihood of independent versus dependent evolution
-            if(length(table(horizontalForest10tips))==2) {
+            if(length(table(horizontalEcology10tips))==2) {
               
-              bayestraitsdiscretedata<-matrix(NA,nrow=length(horizontalForest10tips),ncol=3)
+              bayestraitsdiscretedata<-matrix(NA,nrow=length(horizontalEcology10tips),ncol=3)
               colnames(bayestraitsdiscretedata)<-c("Species","Simulated","CladeA")
-              rownames(bayestraitsdiscretedata)<-c(1:length(horizontalForest10tips))
-              bayestraitsdiscretedata[,1]<-names(horizontalForest10tips)
-              bayestraitsdiscretedata[,2]<-as.numeric(as.character(horizontalForest10tips))
+              rownames(bayestraitsdiscretedata)<-c(1:length(horizontalEcology10tips))
+              bayestraitsdiscretedata[,1]<-names(horizontalEcology10tips)
+              bayestraitsdiscretedata[,2]<-as.numeric(as.character(horizontalEcology10tips))
               bayestraitsdiscretedata[,2]<-as.numeric(bayestraitsdiscretedata[,2])-as.numeric(min(bayestraitsdiscretedata[,2]))
               bayestraitsdiscretedata[bayestraitsdiscretedata[,2]!=0,2]<-1
               bayestraitsdiscretedata[,3]<- as.numeric(as.character(cladeAmember))
@@ -2013,15 +2434,17 @@ for (tree_variant in 1:length(tree_variants)) {
               drift_results[counter,15]<-log_2$results$Lh
               
               
-              bayestraitsdiscretedata<-matrix(NA,nrow=length(horizontalForest10tips),ncol=3)
-              colnames(bayestraitsdiscretedata)<-c("Species","Simulated","Forestmember")
-              rownames(bayestraitsdiscretedata)<-c(1:length(horizontalForest10tips))
-              bayestraitsdiscretedata[,1]<-names(horizontalForest10tips)
-              bayestraitsdiscretedata[,2]<-as.numeric(as.character(horizontalForest10tips))
+              bayestraitsdiscretedata<-matrix(NA,nrow=length(horizontalEcology10tips),ncol=3)
+              colnames(bayestraitsdiscretedata)<-c("Species","Simulated","Ecologymember")
+              rownames(bayestraitsdiscretedata)<-c(1:length(horizontalEcology10tips))
+              bayestraitsdiscretedata[,1]<-names(horizontalEcology10tips)
+              bayestraitsdiscretedata[,2]<-as.numeric(as.character(horizontalEcology10tips))
               bayestraitsdiscretedata[,2]<-as.numeric(bayestraitsdiscretedata[,2])-as.numeric(min(bayestraitsdiscretedata[,2]))
               bayestraitsdiscretedata[bayestraitsdiscretedata[,2]!=0,2]<-1
-              bayestraitsdiscretedata[,3]<- as.numeric(as.character(Forestmember))
+              bayestraitsdiscretedata[,3]<- as.numeric(as.character(Ecologymember))
+              bayestraitsdiscretedata[,3]<-as.numeric(as.character(bayestraitsdiscretedata[,3]))
               bayestraitsdiscretedata<-as.data.frame(bayestraitsdiscretedata)
+              bayestraitsdiscretedata[is.na(bayestraitsdiscretedata[,3]),3]<-"-"
               
               command_vec3 <- c("2", "1") #option 1 = 2 discrete independent; option 2 = 1 maximum likelihood
               results_3 <- bayestraits(bayestraitsdiscretedata, currenttree, command_vec3)
@@ -2038,13 +2461,13 @@ for (tree_variant in 1:length(tree_variants)) {
             
             #For the simulations where there are more than two variants, we run the Bayestraits multistate option
             
-            if(length(table(horizontalForest10tips))>2) {
+            if(length(table(horizontalEcology10tips))>2) {
               
-              bayestraitsdiscretedata<-matrix(NA,nrow=length(horizontalForest10tips),ncol=2)
+              bayestraitsdiscretedata<-matrix(NA,nrow=length(horizontalEcology10tips),ncol=2)
               colnames(bayestraitsdiscretedata)<-c("Species","Simulated")
-              rownames(bayestraitsdiscretedata)<-c(1:length(horizontalForest10tips))
-              bayestraitsdiscretedata[,1]<-names(horizontalForest10tips)
-              bayestraitsdiscretedata[,2]<-as.numeric(as.character(horizontalForest10tips))
+              rownames(bayestraitsdiscretedata)<-c(1:length(horizontalEcology10tips))
+              bayestraitsdiscretedata[,1]<-names(horizontalEcology10tips)
+              bayestraitsdiscretedata[,2]<-as.numeric(as.character(horizontalEcology10tips))
               bayestraitsdiscretedata[,2]<-as.numeric(bayestraitsdiscretedata[,2])-1
               bayestraitsdiscretedata<-as.data.frame(bayestraitsdiscretedata)
               
@@ -2066,22 +2489,23 @@ for (tree_variant in 1:length(tree_variants)) {
           
           counter<-counter+1
           
-        } # end of the 10 random subsamples with 10% horizontal transmission within forests
-        
+
         
         
         
         # Horizontal transfer, 10% of societies change, adopt state of a close neighbor
         
-        for (randomsample in 1:1) {
+        
           
-          Latitudedistance<-as.matrix(dist(doubledata$lati))
-          Longitudedistance<-as.matrix(dist(doubledata$long))
+          Latitudedistance<-as.matrix(dist(locationdata$Latitude))
+          Longitudedistance<-as.matrix(dist(locationdata$Longitude))
           Totaldistance<-Latitudedistance+Longitudedistance
           diag(Totaldistance)<-1000
-          subsettochange<-sample(simulatedtips_neutral,24)
+          colnames(Totaldistance)<-row.names(locationdata)
+          row.names(Totaldistance)<-row.names(locationdata)
+          subsettochange<-sample(simulatedtips_neutral,round(0.15*nrow(data),0))
           
-          for (findtheneighbor in 1:24) {
+          for (findtheneighbor in 1:round(0.15*nrow(data),0)) {
             
             findtherow<-Totaldistance[,colnames(Totaldistance)==names(subsettochange[findtheneighbor])]==min(Totaldistance[,colnames(Totaldistance)==names(subsettochange[findtheneighbor]) ] ,na.rm=T)
             
@@ -2097,12 +2521,14 @@ for (tree_variant in 1:length(tree_variants)) {
           
           #Start filling in the data in the respective column
           drift_results[counter,1]<-tree_used
-          ifelse(drift_variant<4,drift_results[counter,2]<-2,drift_results[counter,2]<-4)
-          ifelse(drift_variant<4,drift_results[counter,3]<-drift_variant,drift_results[counter,3]<-drift_variant-3)
+          drift_results[counter,2]<-4
+          if(drift_variant<4) drift_results[counter,2]<-2
+          drift_results[counter,3]<-drift_variant-3
+          if(drift_variant<4) drift_results[counter,3]<-drift_variant
           drift_results[counter,4]<-repetition
           
           
-          #Start with the full sample of 172 societies
+          #Start with the full sample of societies
           
           drift_results[counter,5]<-"horizontalNeighbor10"
           drift_results[counter,6]<-length(unique(horizontalNeighbor10tips))
@@ -2170,14 +2596,16 @@ for (tree_variant in 1:length(tree_variants)) {
             
             drift_results[counter,11]<-unconstrained_reconstruction$loglik
             
-            resultphylosiglambda<-phylosig(currenttree,as.numeric(horizontalNeighbor10tips),method="lambda") 
+            numeric_simulatedtipds_neutral<-as.numeric(horizontalNeighbor10tips)
+            names(numeric_simulatedtipds_neutral)<-names(horizontalNeighbor10tips)
+            resultphylosiglambda<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="lambda") 
             drift_results[counter,12]<-resultphylosiglambda$lambda
-            resultphylosigK<-phylosig(currenttree,as.numeric(horizontalNeighbor10tips),method="K") 
+            resultphylosigK<-phylosig(currenttree,numeric_simulatedtipds_neutral,method="K") 
             drift_results[counter,13]<-resultphylosigK[1]
             
             
             #For the simulations where there are only two variants, we check whether by chance the variants
-            #end up isolated in Clade A or associated with societies living in forest ecoregions
+            #end up isolated in Clade A or associated with societies living in different ecologies
             #For this we use Bayestraits Discrete, assessing the likelihood of independent versus dependent evolution
             if(length(table(horizontalNeighbor10tips))==2) {
               
@@ -2203,14 +2631,16 @@ for (tree_variant in 1:length(tree_variants)) {
               
               
               bayestraitsdiscretedata<-matrix(NA,nrow=length(horizontalNeighbor10tips),ncol=3)
-              colnames(bayestraitsdiscretedata)<-c("Species","Simulated","Forestmember")
+              colnames(bayestraitsdiscretedata)<-c("Species","Simulated","Ecologymember")
               rownames(bayestraitsdiscretedata)<-c(1:length(horizontalNeighbor10tips))
               bayestraitsdiscretedata[,1]<-names(horizontalNeighbor10tips)
               bayestraitsdiscretedata[,2]<-as.numeric(as.character(horizontalNeighbor10tips))
               bayestraitsdiscretedata[,2]<-as.numeric(bayestraitsdiscretedata[,2])-as.numeric(min(bayestraitsdiscretedata[,2]))
               bayestraitsdiscretedata[bayestraitsdiscretedata[,2]!=0,2]<-1
-              bayestraitsdiscretedata[,3]<- as.numeric(as.character(Forestmember))
+              bayestraitsdiscretedata[,3]<- as.numeric(as.character(Ecologymember))
+              bayestraitsdiscretedata[,3]<-as.numeric(as.character(bayestraitsdiscretedata[,3]))
               bayestraitsdiscretedata<-as.data.frame(bayestraitsdiscretedata)
+              bayestraitsdiscretedata[is.na(bayestraitsdiscretedata[,3]),3]<-"-"
               
               command_vec3 <- c("2", "1") #option 1 = 2 discrete independent; option 2 = 1 maximum likelihood
               results_3 <- bayestraits(bayestraitsdiscretedata, currenttree, command_vec3)
@@ -2257,8 +2687,7 @@ for (tree_variant in 1:length(tree_variants)) {
           counter<-counter+1
           
           
-        } # end of the 10 random subsamples with 10% horizontal transmission from a close neighbor
-        
+
         print(counter)
         print(repetition)
         print(tree_used)
@@ -2267,7 +2696,7 @@ for (tree_variant in 1:length(tree_variants)) {
         
       } #only need to run if there is more than one variant  
       
-    } # end of the 1000 repetition loop
+    } # end of the repetition loop
     
     
   }  # end of the drift variants model
