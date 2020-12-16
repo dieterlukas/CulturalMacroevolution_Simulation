@@ -338,7 +338,7 @@ if(Option=="WNAI") {
   
   #We also want that selection operates differently in one of the ecoregions - all of them that are forests
   # Information on the ecoregion is available for all societies in the sample. 
-  WNAIdata$Forests<-as.numeric(grepl("Forest",data$ecoregion))
+  WNAIdata$Forests<-as.numeric(grepl("Forest",WNAIdata$ecoregion))
   Forestmember<-WNAIdata$Forests
   names(Forestmember)<-WNAIdata$tribes
   Ecologymember<-Forestmember
@@ -513,6 +513,8 @@ colnames(selection_results)<-c("Tree","NumberOfVariantsInModel","RateOfChange","
 #This will start the loop; 
 #because of the large number of analyses for each simulation (different techniques, various subsamples), this takes noticeable computer time
 
+for (condition_variant in 1:2) {
+
 for (tree_variant in 1:length(tree_variants)) {
   
   tree_used<-tree_variants[tree_variant]
@@ -536,7 +538,8 @@ for (tree_variant in 1:length(tree_variants)) {
       
       #Simulate the data with the specified tree and the specified drift model
       
-      simulatedtips_neutral<-sim.multiMk(tree=simmapattemptCladeA,Q=current_selectionvariant,anc="a")
+      if(condition_variant==1) {simulatedtips_neutral<-sim.multiMk(tree=simmapattemptCladeA,Q=current_selectionvariant,anc="a")}
+      if(condition_variant==2) {simulatedtips_neutral<-sim.multiMk(tree=simmapattemptEcology,Q=current_selectionvariant,anc="a")}
       
       
       #store the data in case something breaks
@@ -1647,14 +1650,26 @@ for (tree_variant in 1:length(tree_variants)) {
       
     } # end of the repetition loop
     
-    write.csv(selection_results[1:counter,],file="backup_multipleselectionresults_clade.csv")
+    if(Option=="WNAI") {
+      if(condition_variant==1) {write.csv(selection_results[1:counter,],file="multipleselectionresults_WNAI_clade.csv") }
+      if(condition_variant==2) {write.csv(selection_results[1:counter,],file="multipleselectionresults_WNAI_ecology.csv") }
+      }
+    
+    if(Option=="PamaNyungan") {
+      if(condition_variant==1) {write.csv(selection_results[1:counter,],file="multipleselectionresults_PamaNyungan_clade.csv") }
+      if(condition_variant==2) {write.csv(selection_results[1:counter,],file="multipleselectionresults_PamaNyungan_ecology.csv") }
+      }
     
   }  # end of the drift variants model
   
   
 } #end of the tree variant loop
+  
+} #end of the condition variant loop
 
 options(warn = oldw)
 
-#Store the output file on your computer
-write.csv(selection_results[1:counter,],file="SimulateCulture_MultipleSelectionResults_clade.csv")
+#In case you want to save the results again
+if(Option=="WNAI") {write.csv(selection_results[1:counter,],file="SimulateCulture_MultipleSelectionResults_WNAI_clade.csv") }
+if(Option=="PamaNyungan") {write.csv(selection_results[1:counter,],file="SimulateCulture_MultipleSelectionResults_PamaNyungan_clade.csv") }
+
