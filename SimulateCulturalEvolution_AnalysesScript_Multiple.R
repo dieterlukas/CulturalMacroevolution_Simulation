@@ -11,7 +11,7 @@ library(OUwie)
 library(dplyr)
 library(btw)
 
-setwd("~/ownCloud/Documents/CulturalPhylogenetics/Code/PamaNyungan/")
+#This runs it for the Pama Nyungan simulations:
 
 clade_results<-read.csv("SimulateCulture_MultipleSelectionResults_clade.csv")
 
@@ -191,78 +191,4 @@ drift_results %>% filter(chisq_BT_CladeAdependent_better>0.05) %>% group_by(Samp
 
 
 
-
-plot(samplesize_analysis[1:12,]$proportion_drift_selectionwronglysupported~samplesize_analysis[1:12,]$samplesize,xlim=c(0,200),ylim=c(0,1))
-points(samplesize_analysis$proportion_selection_selectionwronglynotsupported~samplesize_analysis$samplesize,col="red")
-points(samplesize_analysis$drift_diversityrepresented~samplesize_analysis$samplesize,col="black",pch=8)
-points(samplesize_analysis$selection_diversityrepresented~samplesize_analysis$samplesize,col="red",pch=8)
-
-
-
-
-#outcome variables: 
-#drift: proportion wrongly assigned as selection (~20%) - false positives
-#drift: proportion of total variants recovered
-#drift: Clade A Bayestraits wrongly supported
-#drift: Forest Bayestraits wrongly supported
-#drift: Bayestraits Multistate dependent wrongly supported
-
-#selection: proportion wrongly not detected as selection (~50%) - false negatives
-#selection: proportion of total variants recovered
-#selection: Clade A Bayestraits wrongly supported
-#selection: Forest Bayestraits wrongly supported
-#selection: Bayestraits Multistate dependent wrongly supported
-
-#predictor variables:
-#sample size
-#rate of change
-#number of variants in model
-#horizontal transmission
-#tree shape
-#for selection: to one or pathway
-
-
-
-drift_results_filtered<-drift_results[ complete.cases(drift_results$chisq_p_selectionwronglysupported) , ]
-
-
-dat_list <- list(
-  chisq_p_selectionwronglysupported = drift_results_filtered$chisq_p_selectionwronglysupported,
-  samplesize = standardize(drift_results_filtered$samplesize),
-  horizontaltransmission = as.integer(drift_results_filtered$horizontaltransmission)
-)
-
-m8.1 <- quap( alist(
-  chisq_p_selectionwronglysupported ~ dnorm( mu , sigma ) , 
-  mu <- a + b*samplesize , 
-  a ~ dnorm( 1 , 1 ) ,
-  b ~ dnorm( 0 , 1 ) ,
-  sigma ~ dexp( 1 ) ) , data=dat_list )
-precis(m8.1)
-
-
-set.seed(7)
-prior <- extract.prior( m8.1 )
-# set up the plot dimensions
-plot( NULL , xlim=c(0,1) , ylim=c(0.5,1.5) ,
-      xlab="ruggedness" , ylab="log GDP" ) abline( h=min(dd$log_gdp_std) , lty=2 ) abline( h=max(dd$log_gdp_std) , lty=2 )
-# draw 50 lines from the prior
-rugged_seq <- seq( from=-0.1 , to=1.1 , length.out=30 )
-mu <- link( m8.1 , post=prior , data=data.frame(rugged_std=rugged_seq) ) for ( i in 1:50 ) lines( rugged_seq , mu[i,] , col=col.alpha("black",0.3) )
-
-
-Latitudedistance<-as.matrix(dist(WNAIlocations$Latitude))
-Longitudedistance<-as.matrix(dist(WNAIlocations$Longitude))
-Totaldistance<-Latitudedistance+Longitudedistance
-diag(Totaldistance)<-0
-colnames(Totaldistance)<-row.names(WNAIlocations)
-row.names(Totaldistance)<-row.names(WNAIlocations)
-distancetree = nj(Totaldistance)
-plot.phylo(distancetree,edge.width=3,label.offset=1, cex=0.4)
-
-
-
-plot.phylo(Grafentree,type="fan",edge.color = (simmapattemptEcology$mapped.edge[,1]>0.5)+1,show.tip.label = F,edge.width=3)
-
-plot.phylo(Onetree,edge.width=3,label.offset=1, cex=0.4,direction="leftwards")
 
