@@ -76,6 +76,7 @@ library(geiger)
 library(phytools)
 library(OUwie)
 library(caper)
+library(MCMCglmm)
 
 # The code also uses some packages that facilitate loading and structuring the data
 library(dplyr)
@@ -262,7 +263,7 @@ source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Sim
 
 source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_Continuous_Directional.R")
 
-source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_Discrete_Directional.R")
+source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_Discrete_Drift.R")
 
 
 # Clade difference code simulates changes in an arbitrary cultural trait across a known phylogeny, assuming that 
