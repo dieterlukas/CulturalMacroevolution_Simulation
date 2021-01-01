@@ -90,6 +90,7 @@ reconstruction_selection_one_pathway_fromone <- matrix (c(1), nrow=1)
 #-------------------------------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------
 
+drift_variants<-c("drift_two_slow","drift_two_medium","drift_two_fast","drift_four_slow","drift_four_medium","drift_four_fast")
 
 
 

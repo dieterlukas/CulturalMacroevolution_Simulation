@@ -115,7 +115,7 @@ Option<-"PamaNyungan"
 # All data necessary for these examples are available on GitHub, and they can be directly loaded here.
 # This includes the phylogeny, the location of each society, and the coding of an ecological predictor variable
 
-source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_LoadFile.R")
+source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_LoadFiles.R")
 
 #------------------------------------------------------------------------------------------
 
