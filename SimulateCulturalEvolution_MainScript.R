@@ -116,7 +116,19 @@ Option<-"PamaNyungan"
 # All data necessary for these examples are available on GitHub, and they can be directly loaded here.
 # This includes the phylogeny, the location of each society, and the coding of an ecological predictor variable
 
+# The data will be loaded straight into R, without being stored on your computer. Depending on the internet
+# connection, this can sometimes lead to loading errors. In this case, please try to run the source command again.
+
 source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_LoadFiles.R")
+
+#For each Option, there will be three files: 
+# for the WNAI: - the phylogeny based on language family classifications, with branch lengths according to Grafen's transformation
+#               - a data file with the names of the societies, and two predictor variables (ecoregion and whether the society uses boats)
+#               - a data file that specifies the latitude and longitude coordinates of each society
+# for the Pama Nyungan: - the phylogeny based on a recent reconstruction 
+#               - a data file with the names of the societies, and two predictor variables (hunter-gatherer vs foodproducer and simulated trait red vs yellow)
+#               - a data file that specifies the latitude and longitude coordinates of each society
+
 
 #------------------------------------------------------------------------------------------
 
@@ -137,6 +149,7 @@ source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Sim
 
 source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_SubsetClade.R")
 
+# This will generate lists with societies in six clades. These clades represent lineages, from largest to the smallest labeled A-F
 
 #------------------------------------------------------------------------------------------
 # For the analyses to determine whether changes occurred differently in different parts of the tree, there are two specifications
@@ -148,6 +161,8 @@ source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Sim
 # To determine whether changes occurred differently, we need to match this information from the societies to the tree
 # For the clade-based distinction, this labels all branches within the clade one way an all other branches another way
 # For the ecology-based distinction, branches are labelled based on a phylogenetic reconstruction of the most likely history of the ecological variable
+
+# The reconstructions take some time.
 
 source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_MatchPredictors.R")
 
@@ -274,19 +289,6 @@ source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Sim
 source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_Continuous_Directional.R")
 
 source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_Discrete_Directional.R")
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
