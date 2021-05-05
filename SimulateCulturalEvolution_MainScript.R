@@ -91,7 +91,7 @@ library(btw)
 
 
 #------------------------------------------------------------------------------------------
-# In our manuscript, we illustrate this simulation approache with two sets of societies here as example:
+# In our manuscript, we illustrate this simulation approache with two sets of societies as examples:
 # Western North American Indigeneous societies (WNAI) and societies from Australia who speak a language of the Pama Nyungan family
 
 # To run the simulations across a phylogeny of Western North American Indigeneous societies, run this next line
@@ -106,12 +106,17 @@ Option<-"PamaNyungan"
 # For this, you need a phylogeny in nexus format, and, if relevant, information on an ecological variable
 # for the societies in the sample. Load these instead of the example files listed below.
 
-# The code is provided in separate files in a folder on GitHub. They are being called directly from 
+# The specific code files for data and tree preparation and the different simulation scenarios are provided 
+# in separate files in a folder on GitHub at https://github.com/dieterlukas/CulturalMacroevolution_Simulation/tree/master/Code. 
+
+# For the example cases here, these code files are being called directly from
 # this master file. The additional code files contains further comments and explanations. They can 
 # be used directly to simulate cultural traits on user-provided datasets.
 
 #------------------------------------------------------------------------------------------
 
+
+# Starting the example simulations by loading the relevant data
 
 # All data necessary for these examples are available on GitHub, and they can be directly loaded here.
 # This includes the phylogeny, the location of each society, and the coding of an ecological predictor variable
@@ -141,6 +146,10 @@ source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Sim
 
 source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_ModifyPhylogeny.R")
 
+# For the option WNAI, the original tree does not contain branch lengths, so these four variants are being generated
+# For the option Pama Nyungan, there is in addition an fifth tree with the original branch lengths
+
+# The tree with all branch lengths set to be equal is not used by default, because some of the analyses rely on an ultrametric scale (where all tips are equidistant to the root)
 
 #------------------------------------------------------------------------------------------
 
@@ -151,15 +160,16 @@ source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Sim
 
 # This will generate lists with societies in six clades. These clades represent lineages, from largest to the smallest labeled A-F
 
+
 #------------------------------------------------------------------------------------------
 # For the analyses to determine whether changes occurred differently in different parts of the tree, there are two specifications
-# The first one takes the information from above to contrast changes in the largest clade (CladeA) from changes in the remaining part of the tree
+# The first one takes the information from the step above to contrast changes in the largest clade (CladeA) from changes in the remaining part of the tree
 # The second one takes information on an ecological variables to classify societies into two groups: 
 # for the American societies this is whether they primarily use a forest habitat or not
 # for the PamaNyungan societies this is whether they are hunter-gatherers or food-producers
 
-# To determine whether changes occurred differently, we need to match this information from the societies to the tree
-# For the clade-based distinction, this labels all branches within the clade one way an all other branches another way
+# To determine whether changes occurred differently in different parts of the tree, we need to match this information from the societies to the tree
+# For the clade-based distinction, this labels all branches within the clade one way and all other branches another way
 # For the ecology-based distinction, branches are labelled based on a phylogenetic reconstruction of the most likely history of the ecological variable
 
 # The reconstructions take some time.
@@ -197,7 +207,7 @@ counter<-1
 oldw <- getOption("warn")
 options(warn = -1)
 
-# Some of the analyses use Bayesian regressions as in the package MCMCglmm, which require a prior
+# Some of the analyses are performed as Bayesian regressions with functions of the package MCMCglmm, which require a prior
 prior1 = list(R = list(V = 10, fix = 1), G = list(G1 = list(V = 1, nu = 0.002)))
 
 
@@ -214,7 +224,7 @@ repetitions<-10
 #-------------------------------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------
 
-# Each simulation loops over the three (WNAI) or four (PamaNyungan) different phylogenies. 
+# Each simulation loops over the four (WNAI) or five (PamaNyungan) different phylogenies. 
 
 # For each phylogeny, setting and repetition, the following steps occur:
 # - first the evolutionary history of a trait is modelled across the phylogeny
@@ -266,6 +276,11 @@ repetitions<-10
 # if such an analysis wrongly infers that one of the variants of the trait has been under selection or
 # that changes in the trait occurred at different rates in different parts of the tree.
 
+# Simulate a continuous trait (starting with a value of zero at the root) that randomly changes at equal rate across the whole phylogey
+# The output contains the results from two tests, assessing whether the simulated values of the continuous trait
+# are significantly different between the largest clade and the remainder of the phylogeny, and whether the values
+# are significantly differently between the two ecologies. A p-value lower than a certain cut-off (e.g. 0.05) indicates
+# a false positive result.
 source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_Continuous_Drift.R")
 
 source("https://raw.githubusercontent.com/dieterlukas/CulturalMacroevolution_Simulation/master/Code/SimulateCulturalEvolution_Discrete_Drift.R")
